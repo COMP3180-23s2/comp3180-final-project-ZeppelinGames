@@ -1,4 +1,4 @@
-# COMP3180-final-project
+# COMP3180 Realtime Cell Fracturing
 
 Included is a rough timeline below. Fill this in from week to week to show your progress throughout semester.
 
@@ -6,9 +6,44 @@ Included is a rough timeline below. Fill this in from week to week to show your 
 
 Complete the "Choose a Topic" survey in iLearn and paste the details here.
 
+Realtime cell fracturing of meshes within Unity
+
 ## Week 2 - Familiarising yourself with the tools
 
 You need to have accepted this assignment repo and made a post here identifying a resource relevant to your topic.
+
+### Research
+#### Methods:
+
+- Voronoi based fracturing
+- Tetrahedral finite element method
+- Point based fracturing
+- Ray/line based fracturing
+
+#### Papers:
+
+##### Voronoi based
+
+[](https://www.diva-portal.org/smash/get/diva2:1452512/FULLTEXT02)
+
+[](https://dspace5.zcu.cz/bitstream/11025/29529/1/Domaradzki.pdf)
+
+[](https://www.atlantis-press.com/article/25867858.pdf)
+
+[Real time dynamic fracture with volumetric approximate convex decompositions | ACM Transactions on Graphics](https://dl.acm.org/doi/epdf/10.1145/2461912.2461934)
+
+##### Tetrahedral based
+
+[(PDF) Adaptive Tetrahedral Meshes for Brittle Fracture Simulation](https://www.researchgate.net/publication/262488595_Adaptive_Tetrahedral_Meshes_for_Brittle_Fracture_Simulation)
+
+[](https://ieeexplore.ieee.org/abstract/document/4069244)
+
+[Cutting Meshes in Unity](https://youtu.be/1UsuZsaUUng)
+
+[How To Slice Meshes In Unity](https://youtu.be/BVCNDUcnE1o)
+
+[Procedural Destroy in Unity - Lazy Tutorial](https://youtu.be/VwGiwDLQ40A)
+
 
 ## Week 3 - Reading and prototyping
 
