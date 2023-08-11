@@ -13,12 +13,19 @@ public class MeshCutter : MonoBehaviour
     void Start()
     {
         cutMeshLayer = LayerMask.NameToLayer("CutMesh");
+
+        if (Cutter.instance == null)
+        {
+            GameObject newCutter = new GameObject("Cutter");
+            newCutter.AddComponent<Cutter>();
+        }
+
         RecurseCut(cut, maxCuts);
     }
 
     void RecurseCut(GameObject cut, int cutCount)
     {
-        if(cutCount <= 0)
+        if (cutCount <= 0)
         {
             return;
         }
@@ -26,12 +33,21 @@ public class MeshCutter : MonoBehaviour
         MeshRenderer mr = cut.GetComponent<MeshRenderer>();
         Vector3 boundsCenter = mr.bounds.center;
 
-        if (Cutter.Cut(cut, boundsCenter, Random.insideUnitSphere, out GameObject right))
+        Cutter.instance.Cut(cut, boundsCenter, Random.insideUnitSphere, (right) =>
         {
-            cutCount -= 1;
-            right.layer = cutMeshLayer;
-            RecurseCut(cut, cutCount);
-            RecurseCut(right, cutCount);
-        }
+            if (right != null)
+            {
+                cutCount -= 1;
+                right.layer = cutMeshLayer;
+                RecurseCut(cut, cutCount);
+                RecurseCut(right, cutCount);
+            }
+        });
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // get verts
+
     }
 }

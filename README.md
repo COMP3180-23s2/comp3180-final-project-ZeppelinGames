@@ -47,6 +47,10 @@ You need to have accepted this assignment repo and made a post here identifying 
 
 ## Week 3 - Reading and prototyping
 
+- Setup preexisting mesh cutting solution.
+- Optimised and improved readability of solution.
+- Setup performance tracking
+
 ## Week 4 - Reading and prototyping
 
 ## Week 5 - Presentations

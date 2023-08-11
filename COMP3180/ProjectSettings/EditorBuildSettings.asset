@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/NoSelfCollision.unity
+    guid: cf051b918a3799049a57a1ddc8f1ab8e
   m_configObjects: {}

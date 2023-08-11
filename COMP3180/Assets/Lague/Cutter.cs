@@ -1,30 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 using UnityEngine;
+using System;
 
 public class Cutter : MonoBehaviour
 {
-    private static bool isBusy;
+    public static Cutter instance;
+
+    private void Awake()
+    {
+        instance = this;
+    }
+
+    //private static bool isBusy;
     private static Mesh originalMesh;
     private static float force = 0f;
 
-    public static bool Cut(GameObject originalGameObject, Vector3 contactPoint, Vector3 cutNormal, out GameObject cutMesh)
+    private static IEnumerator StartCut(GameObject originalGameObject, Vector3 contactPoint, Vector3 cutNormal, Action<GameObject> callback)
     {
-        cutMesh = null;
-        if (isBusy)
-        {
-            return false;
-        }
-
-        isBusy = true;
-
         Plane cutPlane = new Plane(originalGameObject.transform.InverseTransformDirection(-cutNormal), originalGameObject.transform.InverseTransformPoint(contactPoint));
         originalMesh = originalGameObject.GetComponent<MeshFilter>().mesh;
-
-        if (originalMesh == null)
-        {
-            Debug.LogError("Need mesh to cut");
-            return false;
-        }
 
         List<Vector3> addedVertices = new List<Vector3>();
         GeneratedMesh leftMesh = new GeneratedMesh();
@@ -54,13 +50,21 @@ public class Cutter : MonoBehaviour
         SetMaterials(finishedLeftMesh, finishedRightMesh, mr, originalGameObject);
         CreateAndSetCollider(right, finishedRightMesh);
 
-        isBusy = false;
+        //isBusy = false;
 
         Rigidbody rig = right.AddComponent<Rigidbody>();
         rig.AddForce(cutNormal * force);
 
-        cutMesh = right;
-        return true;
+        callback?.Invoke(right);
+        yield return null;
+    }
+
+    public void Cut(GameObject originalGameObject, Vector3 contactPoint, Vector3 cutNormal, Action<GameObject> callback)
+    {
+        // swap out with optimised mesh before cutting
+
+        // cut mesh
+        StartCoroutine(StartCut(originalGameObject, contactPoint, cutNormal, callback));
     }
 
     private static GameObject CreateClonedGo(GameObject go, Vector3 positionOffset)
@@ -340,7 +344,7 @@ public class Cutter : MonoBehaviour
 
         for (int i = 0; i < _addedVertices.Count; i++)
         {
-            if (!vertices.Contains(_addedVertices[i]))
+            if (!vertices.Contains(_addedVertices[i]) && (i + 1) < _addedVertices.Count)
             {
                 polygon.Clear();
                 polygon.Add(_addedVertices[i]);
