@@ -50,6 +50,8 @@ You need to have accepted this assignment repo and made a post here identifying 
 - Setup preexisting mesh cutting solution.
 - Optimised and improved readability of solution.
 - Setup performance tracking
+- Changing to focus on voxel meshes (only comprised of cubes)
+- Developing editor tools
 
 ## Week 4 - Reading and prototyping
 
