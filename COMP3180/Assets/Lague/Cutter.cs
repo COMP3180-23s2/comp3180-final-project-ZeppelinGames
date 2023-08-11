@@ -5,11 +5,15 @@ public class Cutter : MonoBehaviour
 {
     private static bool isBusy;
     private static Mesh originalMesh;
+    private static float force = 0f;
 
-    public static void Cut(GameObject originalGameObject, Vector3 contactPoint, Vector3 cutNormal)
+    public static bool Cut(GameObject originalGameObject, Vector3 contactPoint, Vector3 cutNormal, out GameObject cutMesh)
     {
-        if (isBusy) 
-            return;
+        cutMesh = null;
+        if (isBusy)
+        {
+            return false;
+        }
 
         isBusy = true;
 
@@ -19,7 +23,7 @@ public class Cutter : MonoBehaviour
         if (originalMesh == null)
         {
             Debug.LogError("Need mesh to cut");
-            return;
+            return false;
         }
 
         List<Vector3> addedVertices = new List<Vector3>();
@@ -34,47 +38,65 @@ public class Cutter : MonoBehaviour
 
         //Getting and destroying all original colliders to prevent having multiple colliders
         //of different kinds on one object
-        var originalCols = originalGameObject.GetComponents<Collider>();
-        foreach (var col in originalCols)
-            Destroy(col);
-
-        originalGameObject.GetComponent<MeshFilter>().mesh = finishedLeftMesh;
-        var collider = originalGameObject.AddComponent<MeshCollider>();
-        collider.sharedMesh = finishedLeftMesh;
-        collider.convex = true;
-
-        Material[] mats = new Material[finishedLeftMesh.subMeshCount];
-        for (int i = 0; i < finishedLeftMesh.subMeshCount; i++)
+        Collider[] originalCols = originalGameObject.GetComponents<Collider>();
+        foreach (var ocol in originalCols)
         {
-            mats[i] = originalGameObject.GetComponent<MeshRenderer>().material;
+            Destroy(ocol);
         }
-        originalGameObject.GetComponent<MeshRenderer>().materials = mats;
 
-        GameObject right = new GameObject();
-        right.transform.position = originalGameObject.transform.position + (Vector3.up * .05f);
-        right.transform.rotation = originalGameObject.transform.rotation;
-        right.transform.localScale = originalGameObject.transform.localScale;
-        right.AddComponent<MeshRenderer>();
+        originalGameObject.GetComponent<MeshFilter>().sharedMesh = finishedLeftMesh;
+        CreateAndSetCollider(originalGameObject, finishedLeftMesh);
 
-        mats = new Material[finishedRightMesh.subMeshCount];
-        for (int i = 0; i < finishedRightMesh.subMeshCount; i++)
-        {
-            mats[i] = originalGameObject.GetComponent<MeshRenderer>().material;
-        }
-        right.GetComponent<MeshRenderer>().materials = mats;
+        // Create right gameobject
+        GameObject right = CreateClonedGo(originalGameObject, Vector3.up * 0.05f);
+        MeshRenderer mr = right.AddComponent<MeshRenderer>();
         right.AddComponent<MeshFilter>().mesh = finishedRightMesh;
-
-        right.AddComponent<MeshCollider>().sharedMesh = finishedRightMesh;
-        var cols = right.GetComponents<MeshCollider>();
-        foreach (var col in cols)
-        {
-            col.convex = true;
-        }
-
-        var rightRigidbody = right.AddComponent<Rigidbody>();
-        rightRigidbody.AddRelativeForce(-cutPlane.normal * 250f);
+        SetMaterials(finishedLeftMesh, finishedRightMesh, mr, originalGameObject);
+        CreateAndSetCollider(right, finishedRightMesh);
 
         isBusy = false;
+
+        Rigidbody rig = right.AddComponent<Rigidbody>();
+        rig.AddForce(cutNormal * force);
+
+        cutMesh = right;
+        return true;
+    }
+
+    private static GameObject CreateClonedGo(GameObject go, Vector3 positionOffset)
+    {
+        GameObject right = new GameObject();
+        right.transform.SetPositionAndRotation(
+            go.transform.position + positionOffset,
+            go.transform.rotation);
+        right.transform.localScale = go.transform.localScale;
+
+        return right;
+    }
+
+    private static void CreateAndSetCollider(GameObject go, Mesh mesh)
+    {
+        MeshCollider collider = go.AddComponent<MeshCollider>();
+        collider.sharedMesh = mesh;
+        collider.convex = true;
+    }
+
+    private static void SetMaterials(Mesh leftMesh, Mesh rightMesh, MeshRenderer rightMr, GameObject go)
+    {
+        MeshRenderer mr = go.GetComponent<MeshRenderer>();
+        Material[] mats = new Material[leftMesh.subMeshCount];
+        for (int i = 0; i < leftMesh.subMeshCount; i++)
+        {
+            mats[i] = mr.material;
+        }
+        mr.materials = mats;
+
+        mats = new Material[rightMesh.subMeshCount];
+        for (int i = 0; i < rightMesh.subMeshCount; i++)
+        {
+            mats[i] = mr.material;
+        }
+        rightMr.materials = mats;
     }
 
     /// <summary>
@@ -255,62 +277,38 @@ public class Cutter : MonoBehaviour
         Vector2 uvRight = Vector2.Lerp(leftMeshTriangle.UVs[1], rightMeshTriangle.UVs[1], normalizedDistance);
 
         //TESTING OUR FIRST TRIANGLE
-        MeshTriangle currentTriangle;
         Vector3[] updatedVertices = { leftMeshTriangle.Vertices[0], vertLeft, vertRight };
         Vector3[] updatedNormals = { leftMeshTriangle.Normals[0], normalLeft, normalRight };
         Vector2[] updatedUVs = { leftMeshTriangle.UVs[0], uvLeft, uvRight };
-
-        currentTriangle = new MeshTriangle(updatedVertices, updatedNormals, updatedUVs, triangle.SubmeshIndex);
-
-        //If our vertices ant the same
-        if (updatedVertices[0] != updatedVertices[1] && updatedVertices[0] != updatedVertices[2])
-        {
-            if (Vector3.Dot(Vector3.Cross(updatedVertices[1] - updatedVertices[0], updatedVertices[2] - updatedVertices[0]), updatedNormals[0]) < 0)
-            {
-                FlipTriangle(currentTriangle);
-            }
-            leftMesh.AddTriangle(currentTriangle);
-        }
+        CreateCutTriangle(updatedVertices, updatedNormals, updatedUVs, triangle, ref leftMesh);
 
         //SECOND TRIANGLE 
         updatedVertices = new Vector3[] { leftMeshTriangle.Vertices[0], leftMeshTriangle.Vertices[1], vertRight };
         updatedNormals = new Vector3[] { leftMeshTriangle.Normals[0], leftMeshTriangle.Normals[1], normalRight };
         updatedUVs = new Vector2[] { leftMeshTriangle.UVs[0], leftMeshTriangle.UVs[1], uvRight };
-
-
-        currentTriangle = new MeshTriangle(updatedVertices, updatedNormals, updatedUVs, triangle.SubmeshIndex);
-        //If our vertices arent the same
-        if (updatedVertices[0] != updatedVertices[1] && updatedVertices[0] != updatedVertices[2])
-        {
-            if (Vector3.Dot(Vector3.Cross(updatedVertices[1] - updatedVertices[0], updatedVertices[2] - updatedVertices[0]), updatedNormals[0]) < 0)
-            {
-                FlipTriangle(currentTriangle);
-            }
-            leftMesh.AddTriangle(currentTriangle);
-        }
+        CreateCutTriangle(updatedVertices, updatedNormals, updatedUVs, triangle, ref leftMesh);
 
         //THIRD TRIANGLE 
         updatedVertices = new Vector3[] { rightMeshTriangle.Vertices[0], vertLeft, vertRight };
         updatedNormals = new Vector3[] { rightMeshTriangle.Normals[0], normalLeft, normalRight };
         updatedUVs = new Vector2[] { rightMeshTriangle.UVs[0], uvLeft, uvRight };
-
-        currentTriangle = new MeshTriangle(updatedVertices, updatedNormals, updatedUVs, triangle.SubmeshIndex);
-        //If our vertices arent the same
-        if (updatedVertices[0] != updatedVertices[1] && updatedVertices[0] != updatedVertices[2])
-        {
-            if (Vector3.Dot(Vector3.Cross(updatedVertices[1] - updatedVertices[0], updatedVertices[2] - updatedVertices[0]), updatedNormals[0]) < 0)
-            {
-                FlipTriangle(currentTriangle);
-            }
-            rightMesh.AddTriangle(currentTriangle);
-        }
+        CreateCutTriangle(updatedVertices, updatedNormals, updatedUVs, triangle, ref rightMesh);
 
         //FOURTH TRIANGLE 
         updatedVertices = new Vector3[] { rightMeshTriangle.Vertices[0], rightMeshTriangle.Vertices[1], vertRight };
         updatedNormals = new Vector3[] { rightMeshTriangle.Normals[0], rightMeshTriangle.Normals[1], normalRight };
         updatedUVs = new Vector2[] { rightMeshTriangle.UVs[0], rightMeshTriangle.UVs[1], uvRight };
+        CreateCutTriangle(updatedVertices, updatedNormals, updatedUVs, triangle, ref rightMesh);
+    }
 
-        currentTriangle = new MeshTriangle(updatedVertices, updatedNormals, updatedUVs, triangle.SubmeshIndex);
+    private static void CreateCutTriangle(
+        Vector3[] updatedVertices,
+        Vector3[] updatedNormals,
+        Vector2[] updatedUVs,
+        MeshTriangle triangle,
+        ref GeneratedMesh rightMesh)
+    {
+        MeshTriangle currentTriangle = new MeshTriangle(updatedVertices, updatedNormals, updatedUVs, triangle.SubmeshIndex);
         //If our vertices arent the same
         if (updatedVertices[0] != updatedVertices[1] && updatedVertices[0] != updatedVertices[2])
         {
@@ -441,8 +439,7 @@ public class Cutter : MonoBehaviour
                 FlipTriangle(currentTriangle);
             }
             _rightMesh.AddTriangle(currentTriangle);
-
         }
     }
 }
-    
+

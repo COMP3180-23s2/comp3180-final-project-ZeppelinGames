@@ -57,8 +57,6 @@ public class GeneratedMesh
         }
     }
 
-
-
     public Mesh GetGeneratedMesh()
     {
         Mesh mesh = new Mesh();
