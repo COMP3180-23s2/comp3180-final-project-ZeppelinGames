@@ -14,6 +14,8 @@ public class PerformanceRenderer : MonoBehaviour
 
     float highestFPS = 0;
 
+    float avgFPS = 0;
+
     private void Start()
     {
         fpsGraph = new Texture2D(400, 200);
@@ -36,11 +38,21 @@ public class PerformanceRenderer : MonoBehaviour
     void Update()
     {
         fps = (1.0f / Time.deltaTime);
+        avgFPS += fps;
         if(fps > highestFPS)
         {
             highestFPS = fps;
         }
-        prevFPS[prevFPSIndex++ % prevFPS.Length] = fps;
+        prevFPS[prevFPSIndex % prevFPS.Length] = fps;
+        if(++prevFPSIndex >= prevFPS.Length)
+        {
+            prevFPSIndex = 0;
+            avgFPS /= prevFPS.Length;
+
+            highestFPS = avgFPS;
+
+            avgFPS = 0;
+        }
 
         // draw fps graph
         float x = 0;
@@ -50,8 +62,8 @@ public class PerformanceRenderer : MonoBehaviour
         {
             float newX = x + (fpsGraph.width / prevFPS.Length);
 
-            float y = (Mathf.Clamp(prevFPS[(i + prevFPSIndex) % prevFPS.Length], 0, (highestFPS - 1)) / highestFPS) * fpsGraph.height;
-            float prevY = (Mathf.Clamp(prevFPS[(i - 1 + prevFPSIndex) % prevFPS.Length], 0, (highestFPS - 1)) / highestFPS) * fpsGraph.height;
+            float y = (Mathf.Clamp(prevFPS[(i + prevFPSIndex) % prevFPS.Length], 0, highestFPS) / highestFPS) * fpsGraph.height;
+            float prevY = (Mathf.Clamp(prevFPS[(i - 1 + prevFPSIndex) % prevFPS.Length], 0, highestFPS) / highestFPS) * fpsGraph.height;
 
             DrawLine(fpsGraph, new Vector2(x, prevY), new Vector2(newX, y), Color.Lerp(Color.red, Color.green, y / fpsGraph.height), 5);
             x = newX;
@@ -75,13 +87,13 @@ public class PerformanceRenderer : MonoBehaviour
             t = Vector2.Lerp(p1, p2, ctr);
             ctr += frac;
 
-            for (int i = -thickness / 2; i < thickness / 2 + 1; i++)
+            for (int x = 0; x < thickness; x++)
             {
-                float x = t.x + i;
-                float y = (t.y + i) * m;
-                tex.SetPixel((int)x, (int)y, col);
+                for (int y = 0; y < thickness; y++)
+                {
+                    tex.SetPixel((int)t.x + x, (int)t.y + y, col);
+                }
             }
-            tex.SetPixel((int)t.x, (int)t.y, col);
         }
     }
 }

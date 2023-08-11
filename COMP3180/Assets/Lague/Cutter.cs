@@ -62,9 +62,55 @@ public class Cutter : MonoBehaviour
     public void Cut(GameObject originalGameObject, Vector3 contactPoint, Vector3 cutNormal, Action<GameObject> callback)
     {
         // swap out with optimised mesh before cutting
+        // distance vert merging
+        //GenerateOptimisedMesh(ref originalGameObject);
 
         // cut mesh
         StartCoroutine(StartCut(originalGameObject, contactPoint, cutNormal, callback));
+    }
+
+    private static void GenerateOptimisedMesh(ref GameObject mesh)
+    {
+        MeshFilter mf = mesh.GetComponent<MeshFilter>();
+        Mesh m = mf.sharedMesh;
+        List<Vector3> newVerts = new List<Vector3>();
+        newVerts.AddRange(m.vertices);
+
+        List<int> newTris = new List<int>();
+        newTris.AddRange(m.triangles);
+
+        for (int i = 0; i < m.triangles.Length; i += 3)
+        {
+            // calc distance between tris verts
+            float v1v2Dist = Vector3.Distance(m.vertices[m.triangles[i]], m.vertices[m.triangles[i + 1]]);
+            float v1v3Dist = Vector3.Distance(m.vertices[m.triangles[i]], m.vertices[m.triangles[i + 2]]);
+            float v2v3Dist = Vector3.Distance(m.vertices[m.triangles[i + 1]], m.vertices[m.triangles[i + 2]]);
+
+            // merge if dist < val
+            if (v1v2Dist < 0.5f)
+            {
+                // remove vert.
+                // point all tris that ref vert to merged vert
+                int vI = newVerts.IndexOf(m.vertices[m.triangles[i]]);
+
+                newVerts.RemoveAt(vI);
+
+                // retarget triangle
+                for (int j = 0; j < m.triangles.Length; j++)
+                {
+                    if (m.triangles[j] == vI)
+                    {
+                        newTris[j] = m.triangles[i + 1];
+                    }
+                }
+            }
+        }
+
+        Mesh newMesh = new Mesh();
+        newMesh.SetVertices(newVerts);
+        newMesh.SetTriangles(newTris, 0);
+
+        mf.mesh = newMesh;
     }
 
     private static GameObject CreateClonedGo(GameObject go, Vector3 positionOffset)
