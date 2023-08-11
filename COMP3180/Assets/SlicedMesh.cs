@@ -27,10 +27,5 @@ public class SlicedMesh
         {
             slices[i] = new List<Vector3[]>();
         }
-
-        for (int i = 0; i < vertices.Length; i++)
-        {
-
-        }
     }
 }
