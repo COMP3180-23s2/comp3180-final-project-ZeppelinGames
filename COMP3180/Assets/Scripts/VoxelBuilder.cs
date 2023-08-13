@@ -15,16 +15,8 @@ public class VoxelBuilder : MonoBehaviour
     private void Start()
     {
         meshFilter = GetComponent<MeshFilter>();
-    }
-
-    private void OnGUI()
-    {
-        bool build = GUI.Button(new Rect(10, 10, 100, 30), "BUILD CPU");
-        if (build)
-        {
-            LoadVoxel();
-            BuildVoxel();
-        }
+        LoadVoxel();
+        BuildVoxel();
     }
 
     public void RemoveVox(Vector3Rounded voxelPosition)
