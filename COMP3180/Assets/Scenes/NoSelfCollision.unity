@@ -184,7 +184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   voxFile: {fileID: 4900000, guid: f63f55f5256f24145982c402c6ba04fd, type: 3}
-  voxelSize: 0.1
+  voxelSize: 0.5
 --- !u!33 &142374695
 MeshFilter:
   m_ObjectHideFlags: 0

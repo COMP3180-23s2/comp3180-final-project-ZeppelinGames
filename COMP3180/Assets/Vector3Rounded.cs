@@ -13,6 +13,14 @@ public class Vector3Rounded
         this.round = round;
     }
 
+    public Vector3Rounded(Vector3 vec, float round)
+    {
+        this.x = vec.x * round;
+        this.y = vec.y * round;
+        this.z = vec.z * round;
+        this.round = round;
+    }
+
     public static Vector3Rounded operator +(Vector3Rounded a, Vector3Rounded b)
     {
         return new Vector3Rounded(a.x + b.x, a.y + b.y, a.z + b.z, a.round);

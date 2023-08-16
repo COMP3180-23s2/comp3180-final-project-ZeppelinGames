@@ -9,7 +9,7 @@ public class VoxelBuilder : MonoBehaviour
 
     [SerializeField] private float voxelSize = 0.25f;
 
-    private Dictionary<Vector3Rounded, Voxel> mappedVoxels = new Dictionary<Vector3Rounded, Voxel>();
+    private Dictionary<Vector3Int, Voxel> mappedVoxels = new Dictionary<Vector3Int, Voxel>();
     private MeshFilter meshFilter;
 
     private void Start()
@@ -19,11 +19,11 @@ public class VoxelBuilder : MonoBehaviour
         BuildVoxel();
     }
 
-    public void RemoveVox(Vector3Rounded voxelPosition)
+    public void RemoveVox(Voxel vox)
     {
-        if (mappedVoxels.ContainsKey(voxelPosition))
+        if (mappedVoxels.ContainsKey(vox.LocalPosition))
         {
-            mappedVoxels.Remove(voxelPosition);
+            mappedVoxels.Remove(vox.LocalPosition);
             BuildVoxel();
         }
     }
@@ -34,15 +34,17 @@ public class VoxelBuilder : MonoBehaviour
         List<int> tris = new List<int>();
         List<Vector3> norms = new List<Vector3>();
 
-        foreach (KeyValuePair<Vector3Rounded, Voxel> vox in mappedVoxels)
+        foreach (KeyValuePair<Vector3Int, Voxel> vox in mappedVoxels)
         {
-            vox.Value.Build(out Vector3[] v, out int[] t, out Vector3[] n,
-                XP: !mappedVoxels.ContainsKey(vox.Value.Position + new Vector3Rounded(1, 0, 0, voxelSize)),
-                XN: !mappedVoxels.ContainsKey(vox.Value.Position + new Vector3Rounded(-1, 0, 0, voxelSize)),
-                YP: !mappedVoxels.ContainsKey(vox.Value.Position + new Vector3Rounded(0, 1, 0, voxelSize)),
-                YN: !mappedVoxels.ContainsKey(vox.Value.Position + new Vector3Rounded(0, -1, 0, voxelSize)),
-                ZP: !mappedVoxels.ContainsKey(vox.Value.Position + new Vector3Rounded(0, 0, 1, voxelSize)),
-                ZN: !mappedVoxels.ContainsKey(vox.Value.Position + new Vector3Rounded(0, 0, -1, voxelSize)));
+            FaceDirections fd = new FaceDirections(
+                 !mappedVoxels.ContainsKey(vox.Value.LocalPosition + new Vector3Int(1, 0, 0)),
+                 !mappedVoxels.ContainsKey(vox.Value.LocalPosition + new Vector3Int(-1, 0, 0)),
+                 !mappedVoxels.ContainsKey(vox.Value.LocalPosition + new Vector3Int(0, 1, 0)),
+                 !mappedVoxels.ContainsKey(vox.Value.LocalPosition + new Vector3Int(0, -1, 0)),
+                 !mappedVoxels.ContainsKey(vox.Value.LocalPosition + new Vector3Int(0, 0, 1)),
+                 !mappedVoxels.ContainsKey(vox.Value.LocalPosition + new Vector3Int(0, 0, -1)));
+
+            vox.Value.Build(out Vector3[] v, out int[] t, out Vector3[] n, fd);
 
             for (int i = 0; i < t.Length; i++)
             {
@@ -68,7 +70,7 @@ public class VoxelBuilder : MonoBehaviour
         // read vox file data
         string[] splitData = voxFile.text.Split(';');
 
-        mappedVoxels = new Dictionary<Vector3Rounded, Voxel>();
+        mappedVoxels = new Dictionary<Vector3Int, Voxel>();
 
         for (int i = 0; i < splitData.Length; i++)
         {
@@ -76,11 +78,12 @@ public class VoxelBuilder : MonoBehaviour
             {
                 string[] pos = splitData[i].Split(',');
 
-                Vector3Rounded voxPos = new Vector3Rounded(int.Parse(pos[0]), int.Parse(pos[1]), int.Parse(pos[2]), voxelSize);
-                Voxel newVoxel = new Voxel(voxPos);
-                if (!mappedVoxels.ContainsKey(voxPos))
+                Vector3Int localPos = new Vector3Int(int.Parse(pos[0]), int.Parse(pos[1]), int.Parse(pos[2]));
+                Vector3Rounded voxPos = new Vector3Rounded(localPos, voxelSize);
+                Voxel newVoxel = new Voxel(voxPos, localPos);
+                if (!mappedVoxels.ContainsKey(localPos))
                 {
-                    mappedVoxels.Add(voxPos, newVoxel);
+                    mappedVoxels.Add(localPos, newVoxel);
                 }
             }
         }

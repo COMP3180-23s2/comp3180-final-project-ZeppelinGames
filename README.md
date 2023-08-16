@@ -53,7 +53,13 @@ You need to have accepted this assignment repo and made a post here identifying 
 - Changing to focus on voxel meshes (only comprised of cubes)
 - Developing editor tools
 
+![Fracturing Cube](Documentation/week3.gif)  
+*Implementation of preexisting fracturing solution on concave mesh*
+
 ## Week 4 - Reading and prototyping
+- Starting working on voxel mesh file format
+- Created voxel mesh generator with optimisations to not create inner faces
+- Started working on in editor voxel creation tool
 
 ## Week 5 - Presentations
 
