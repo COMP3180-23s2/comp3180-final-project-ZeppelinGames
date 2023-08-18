@@ -28,6 +28,11 @@ public class VoxelBuilder : MonoBehaviour
         }
     }
 
+    public void UpdateVoxel(Voxel vox)
+    {
+        // update surrounding voxels
+    }
+
     public void BuildVoxel()
     {
         List<Vector3> verts = new List<Vector3>();

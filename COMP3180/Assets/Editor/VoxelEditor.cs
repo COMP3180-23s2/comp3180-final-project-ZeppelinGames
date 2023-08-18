@@ -79,6 +79,8 @@ public class VoxelEditor : EditorWindow
         previewUtility.AddSingleGO(baseObject);
         previewUtility.AddSingleGO(targetObject);
 
+		CreateVoxel(new Vector3Int(0, 2, 1));
+
         previewUtility.camera.cameraType = CameraType.SceneView;
 
 		cameraPivot = new GameObject().GetComponent<Transform>();
@@ -146,6 +148,7 @@ public class VoxelEditor : EditorWindow
 							Plane facePlane = new Plane(voxels[i].transform.position, voxels[i].transform.position.magnitude);
 							Ray camPointRay = previewUtility.camera.ScreenPointToRay(e.mousePosition);
 							facePlane.Raycast(camPointRay, out float dist);
+							Debug.Log(dist);
                         }
 
 						Repaint();
