@@ -61,6 +61,9 @@ You need to have accepted this assignment repo and made a post here identifying 
 - Created voxel mesh generator with optimisations to not create inner faces
 - Started working on in editor voxel creation tool
 
+Wireframe Voxel | Rendered Voxel
+:-----:|:-----:
+![Wireframe Voxels](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/Week4-GenerateVoxWireframe.PNG) | ![Voxel](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/Week4-GeneratedVox.PNG)
 ## Week 5 - Presentations
 
 ## Week 6 - Presentations
