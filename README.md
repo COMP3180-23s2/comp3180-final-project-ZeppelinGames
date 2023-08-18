@@ -59,6 +59,7 @@ You need to have accepted this assignment repo and made a post here identifying 
 ## Week 4 - Reading and prototyping
 - Starting working on voxel mesh file format
 - Created voxel mesh generator with optimisations to not create inner faces
+- Fixed mesh normals through vertex doubling.
 - Started working on in editor voxel creation tool
 
 Wireframe Voxel | Rendered Voxel | Fixed Normals
