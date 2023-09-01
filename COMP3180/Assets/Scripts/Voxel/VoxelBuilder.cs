@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
 public class VoxelBuilder : MonoBehaviour
@@ -13,6 +14,13 @@ public class VoxelBuilder : MonoBehaviour
     private List<Color> mappedColors = new List<Color>();
 
     private MeshFilter meshFilter;
+
+
+    [ContextMenu("Edit Model")]
+    public void EditModel()
+    {
+        VoxelEditor.ShowVoxelEditor(this);
+    }
 
     private void Start()
     {
@@ -33,6 +41,17 @@ public class VoxelBuilder : MonoBehaviour
     public void UpdateVoxel(Voxel vox)
     {
         // update surrounding voxels
+    }
+
+    private void OnValidate()
+    {
+        if (meshFilter == null)
+        {
+            meshFilter = GetComponent<MeshFilter>();
+        }
+
+        LoadVoxel();
+        BuildVoxel();
     }
 
     public void BuildVoxel()
@@ -78,7 +97,7 @@ public class VoxelBuilder : MonoBehaviour
         mesh.SetNormals(norms);
         mesh.SetColors(cols);
 
-        meshFilter.mesh = mesh;
+        meshFilter.sharedMesh = mesh;
     }
 
     public void LoadVoxel()
@@ -95,48 +114,46 @@ public class VoxelBuilder : MonoBehaviour
 
         for (int i = 0; i < contents.Length; i++)
         {
-            if (contents[i] == 'v')
+            switch (contents[i])
             {
-                writeVertex = true;
-                continue;
-            }
-            if (contents[i] == 'c')
-            {
-                writeVertex = false;
-                continue;
-            }
+                case 'v':
+                    writeVertex = true;
+                    break;
+                
+                case 'c':
+                    writeVertex = false;
+                    break;
+                
+                case ',':
+                    int.TryParse(rawData, out data[dataIndex]);
+                    dataIndex++;
+                    rawData = "";
+                    break;
 
-            if(contents[i] == ',')
-            {
-                int.TryParse(rawData, out data[dataIndex]);
-                dataIndex++;
-                rawData = "";
-                continue;
-            }
+                case ';':
+                    int.TryParse(rawData, out data[dataIndex]);
 
-            if (contents[i] == ';')
-            {
-                int.TryParse(rawData, out data[dataIndex]);
-
-                if (writeVertex)
-                {
-                    Vector3Int pos = new Vector3Int(data[0], data[1], data[2]);
-                    if (!mappedVoxels.ContainsKey(pos))
+                    if (writeVertex)
                     {
-                        mappedVoxels.Add(pos, new Voxel(new Vector3Rounded(pos, voxelSize), pos, data[3]));
+                        Vector3Int pos = new Vector3Int(data[0], data[1], data[2]);
+                        if (!mappedVoxels.ContainsKey(pos))
+                        {
+                            mappedVoxels.Add(pos, new Voxel(new Vector3Rounded(pos, voxelSize), pos, data[3]));
+                        }
                     }
-                }
-                else
-                {
-                    mappedColors.Add(new Color(data[0] / 255f, data[1] / 255f, data[2] / 255f, data[3] / 255));
-                }
+                    else
+                    {
+                        mappedColors.Add(new Color(data[0] / 255f, data[1] / 255f, data[2] / 255f, data[3] / 255));
+                    }
 
-                dataIndex = 0;
-                rawData = "";
-                continue;
+                    dataIndex = 0;
+                    rawData = "";
+                    break;
+                
+                    default:
+                    rawData += contents[i];
+                    break;
             }
-
-             rawData += contents[i];
         }
 
         // read vox file data
@@ -157,29 +174,5 @@ public class VoxelBuilder : MonoBehaviour
                 }
             }
         }*/
-
-        // CPU
-        
-
-        // based on unique voxels, create verts non overlapping
-
-        // build tris
-
-        // create mesh 
-
-        // assign mesh
-
-        // GPU
-        // split into 8x8 grids
-
-        // write data to bool array
-
-        // pass to gpu
-
-        // get verts + tris back from gpu
-
-        // create mesh
-
-        // asign mesh
     }
 }
