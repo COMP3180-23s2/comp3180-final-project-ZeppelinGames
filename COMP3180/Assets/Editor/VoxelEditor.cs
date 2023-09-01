@@ -15,9 +15,6 @@ public class VoxelEditor : EditorWindow
 
     private PreviewRenderUtility previewUtility;
 
-    private GameObject targetObject;
-
-
     private List<Vector3Int> keys = new List<Vector3Int>();
     private Dictionary<Vector3Int, GameObject> voxels = new Dictionary<Vector3Int, GameObject>();
 
@@ -41,11 +38,6 @@ public class VoxelEditor : EditorWindow
             previewUtility.Cleanup();
         }
 
-        if (targetObject != null)
-        {
-            DestroyImmediate(targetObject);
-        }
-
         for (int i = 0; i < keys.Count; i++)
         {
             if (voxels[keys[i]] != null)
@@ -63,10 +55,6 @@ public class VoxelEditor : EditorWindow
         Light mainLight = new GameObject().AddComponent<Light>();
         mainLight.type = LightType.Directional;
         mainLight.transform.eulerAngles = new Vector3(50f, -30f, 0);
-
-
-        targetObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        targetObject.transform.position = Vector3.one;
 
         // Register objects
         previewUtility.AddSingleGO(mainLight.gameObject);

@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f74667b3924a73047b3444563b865f29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  voxFile: {fileID: 4900000, guid: f63f55f5256f24145982c402c6ba04fd, type: 3}
+  voxFile: {fileID: 4900000, guid: 04aaf7645d673534abd077e0ddd31c8f, type: 3}
   voxelSize: 0.5
 --- !u!33 &142374695
 MeshFilter:
