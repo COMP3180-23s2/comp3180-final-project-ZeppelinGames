@@ -13,6 +13,9 @@ public class Voxel
 	
 	private Vector3Int localPosition;
 
+	public int ColorIndex => colorIndex;
+	private int colorIndex;
+
 	private float halfSize;
 
 	public Voxel(Vector3Rounded position, Vector3Int localPosition)
@@ -23,6 +26,10 @@ public class Voxel
 	}
 
 	public Voxel(int x, int y, int z, int size) : this(new Vector3Rounded(x,y,z, size), new Vector3Int(x,y,z)) {}
+	public Voxel(Vector3Rounded position, Vector3Int localPosition, int c) : this(position, localPosition)
+    {
+		this.colorIndex = c;
+    }
 
 	static int[][] faceTriangles = new int[][]
 	{

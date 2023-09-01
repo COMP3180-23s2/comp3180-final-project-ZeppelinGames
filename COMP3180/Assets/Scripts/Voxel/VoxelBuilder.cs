@@ -10,6 +10,8 @@ public class VoxelBuilder : MonoBehaviour
     [SerializeField] private float voxelSize = 0.25f;
 
     private Dictionary<Vector3Int, Voxel> mappedVoxels = new Dictionary<Vector3Int, Voxel>();
+    private List<Color> mappedColors = new List<Color>();
+
     private MeshFilter meshFilter;
 
     private void Start()
@@ -38,6 +40,7 @@ public class VoxelBuilder : MonoBehaviour
         List<Vector3> verts = new List<Vector3>();
         List<int> tris = new List<int>();
         List<Vector3> norms = new List<Vector3>();
+        List<Color> cols = new List<Color>();
 
         foreach (KeyValuePair<Vector3Int, Voxel> vox in mappedVoxels)
         {
@@ -58,6 +61,13 @@ public class VoxelBuilder : MonoBehaviour
             for (int i = 0; i < v.Length; i++)
             {
                 verts.Add(vox.Value.Position + v[i]);
+
+                Color c = new Color(1, 0, 1, 1);
+                if (vox.Value.ColorIndex >= 0 && vox.Value.ColorIndex < mappedColors.Count)
+                {
+                    c = mappedColors[vox.Value.ColorIndex];
+                }
+                cols.Add(c);
             }
             norms.AddRange(n);
         }
@@ -66,16 +76,71 @@ public class VoxelBuilder : MonoBehaviour
         mesh.SetVertices(verts);
         mesh.SetTriangles(tris, 0);
         mesh.SetNormals(norms);
+        mesh.SetColors(cols);
 
         meshFilter.mesh = mesh;
     }
 
     public void LoadVoxel()
     {
-        // read vox file data
-        string[] splitData = voxFile.text.Split(';');
+        mappedVoxels.Clear();
+        mappedColors.Clear();
+        
+        string contents = voxFile.text;
 
-        mappedVoxels = new Dictionary<Vector3Int, Voxel>();
+        bool writeVertex = true;
+        int[] data = new int[4];
+        int dataIndex = 0;
+        string rawData = "";
+
+        for (int i = 0; i < contents.Length; i++)
+        {
+            if (contents[i] == 'v')
+            {
+                writeVertex = true;
+                continue;
+            }
+            if (contents[i] == 'c')
+            {
+                writeVertex = false;
+                continue;
+            }
+
+            if(contents[i] == ',')
+            {
+                int.TryParse(rawData, out data[dataIndex]);
+                dataIndex++;
+                rawData = "";
+                continue;
+            }
+
+            if (contents[i] == ';')
+            {
+                int.TryParse(rawData, out data[dataIndex]);
+
+                if (writeVertex)
+                {
+                    Vector3Int pos = new Vector3Int(data[0], data[1], data[2]);
+                    if (!mappedVoxels.ContainsKey(pos))
+                    {
+                        mappedVoxels.Add(pos, new Voxel(new Vector3Rounded(pos, voxelSize), pos, data[3]));
+                    }
+                }
+                else
+                {
+                    mappedColors.Add(new Color(data[0] / 255f, data[1] / 255f, data[2] / 255f, data[3] / 255));
+                }
+
+                dataIndex = 0;
+                rawData = "";
+                continue;
+            }
+
+             rawData += contents[i];
+        }
+
+        // read vox file data
+/*        string[] splitData = voxFile.text.Split(';');
 
         for (int i = 0; i < splitData.Length; i++)
         {
@@ -91,7 +156,7 @@ public class VoxelBuilder : MonoBehaviour
                     mappedVoxels.Add(localPos, newVoxel);
                 }
             }
-        }
+        }*/
 
         // CPU
         
