@@ -65,9 +65,14 @@ You need to have accepted this assignment repo and made a post here identifying 
 Wireframe Voxel | Rendered Voxel | Fixed Normals
 :-----:|:-----:|:------:
 ![Wireframe Voxels](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/Week4-GenerateVoxWireframe.PNG) | ![Voxel](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/Week4-GeneratedVox.PNG) | ![Fixed Normals](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/week4-fixednormals.PNG)
+
 ## Week 5 - Presentations
+- Worked on presentation
 
 ## Week 6 - Presentations
+- Added vertex colors to mesh
+- Created new file parser with colour support
+- Added export option from editor tool to save voxel to file
 
 ## Week 7 - Finalising your Research Report
 
