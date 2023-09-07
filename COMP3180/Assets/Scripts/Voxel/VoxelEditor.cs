@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 
 public static class VoxelEditor
 {
-    public static void ShowVoxelEditor(VoxelBuilder go)
+    public static void ShowVoxelEditor(VoxelManager go)
     {
         EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
 

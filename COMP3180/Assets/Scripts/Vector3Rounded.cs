@@ -4,6 +4,7 @@ using UnityEngine;
 public class Vector3Rounded
 {
     public float x, y, z, round;
+    public Vector3 v3 => new Vector3(this.x, this.y, this.z);
 
     public Vector3Rounded(float x, float y, float z, float round)
     {
