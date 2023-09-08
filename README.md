@@ -75,6 +75,9 @@ Wireframe Voxel | Rendered Voxel | Fixed Normals
 - Added export option from editor tool to save voxel to file
 
 ## Week 7 - Finalising your Research Report
+- Research report
+- Refactored entire project (it now works better. trust)
+- Wrote documentation for key scripts/file formats
 
 ## Mid-semster break 1
 
