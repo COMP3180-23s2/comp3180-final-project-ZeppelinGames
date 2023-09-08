@@ -87,6 +87,7 @@ public static class VoxParser
         int lineChar = 0;
 
         LoadState state = LoadState.NONE;
+        LoadState prevState = LoadState.NONE;
 
         try
         {
@@ -109,13 +110,14 @@ public static class VoxParser
                 {
                     if (contents[i] == ';')
                     {
-                        state = LoadState.NONE;
+                        state = prevState;
                     }
                     continue;
                 }
 
                 if (stateKeys.ContainsKey(contents[i]))
                 {
+                    prevState = state;
                     state = stateKeys[contents[i]];
                     continue;
                 }                
