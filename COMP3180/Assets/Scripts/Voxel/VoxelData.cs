@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+
+public class VoxelData
+{
+    public VoxelPoint[] VoxelPoints => voxelPoints;
+    public Color[] Colors => colors;
+
+    private TextAsset voxelDataFile;
+    private VoxelPoint[] voxelPoints;
+    private Color[] colors;
+
+    public VoxelData(TextAsset voxelDataFile)
+    {
+        this.voxelDataFile = voxelDataFile;
+        VoxParser.Parse(
+            voxelDataFile.text, 
+            out _, 
+            out voxelPoints, 
+            out _, 
+            out _, 
+            out colors, 
+            out _, 
+            out _, 
+            out _, 
+            out _, 
+            out _, 
+            out _);
+    }
+}

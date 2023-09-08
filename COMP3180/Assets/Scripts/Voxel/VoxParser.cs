@@ -1,16 +1,17 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public struct VoxelPoint
 {
-    public Vector3Int pos;
-    public int colorIndex;
+    public Vector3Int Position;
+    public int ColorIndex;
 
     public VoxelPoint(Vector3Int v, int cIn)
     {
-        this.pos = v;
-        this.colorIndex = cIn;
+        this.Position = v;
+        this.ColorIndex = cIn;
     }
 }
 
@@ -77,92 +78,120 @@ public static class VoxParser
         List<int> zpTris = new List<int>();
         List<int> znTris = new List<int>();
 
-
         float[] data = new float[4];
         int dataIndex = 0;
         string rawData = "";
 
+        int readLine = 1;
+        int readChar = 0;
+        int lineChar = 0;
+
         LoadState state = LoadState.NONE;
 
-        for (int i = 0; i < contents.Length; i++)
+        try
         {
-            if (char.IsWhiteSpace(contents[i]))
+            for (int i = 0; i < contents.Length; i++)
             {
-                continue;
-            }
+                readChar = i;
+                lineChar++;
+                if (contents[i] == '\n')
+                {
+                    readLine++;
+                    lineChar = 0;
+                    continue;
+                }
+                if (char.IsWhiteSpace(contents[i]))
+                {
+                    continue;
+                }
 
-            if (stateKeys.ContainsKey(contents[i]))
-            {
-                state = stateKeys[contents[i]];
-                continue;
-            }
-
-            switch (contents[i])
-            {
-                case ',':
-                    if (!float.TryParse(rawData, out data[dataIndex]))
+                if (state == LoadState.COMMENT)
+                {
+                    if (contents[i] == ';')
                     {
-                        data[dataIndex] = 0;
+                        state = LoadState.NONE;
                     }
-                    dataIndex++;
-                    rawData = "";
-                    break;
+                    continue;
+                }
 
-                case ';':
-                    if (!float.TryParse(rawData, out data[dataIndex]))
-                    {
-                        data[dataIndex] = 0;
-                    }
+                if (stateKeys.ContainsKey(contents[i]))
+                {
+                    state = stateKeys[contents[i]];
+                    continue;
+                }                
 
-                    switch (state)
-                    {
-                        case LoadState.POINT:
-                            voxelPoints.Add(ParseVoxelPoint(data));
-                            break;
+                switch (contents[i])
+                {
+                    case ',':
+                        if (!float.TryParse(rawData, out data[dataIndex]))
+                        {
+                           data[dataIndex] = 0;
+                        }
+                        dataIndex++;
+                        rawData = "";
+                        break;
 
-                        case LoadState.VERTEX:
-                            vertices.Add(ParseVector3(data));
-                            break;
+                    case ';':
+                        if (!float.TryParse(rawData, out data[dataIndex]))
+                        {
+                            data[dataIndex] = 0;
+                        }
 
-                        case LoadState.NORMAL:
-                            normals.Add(ParseVector3(data));
-                            break;
-                        case LoadState.TRIANGLE:
-                            triangles.Add(ParseInt(data));
-                            break;
-                        case LoadState.COLOR:
-                            colors.Add(ParseColor(data));
-                            break;
+                        switch (state)
+                        {
+                            case LoadState.POINT:
+                                voxelPoints.Add(ParseVoxelPoint(data));
+                                break;
 
+                            case LoadState.VERTEX:
+                                vertices.Add(ParseVector3(data));
+                                break;
 
-                        case LoadState.UP_TRIS:
-                            upTris.Add(ParseInt(data));
-                            break;
-                        case LoadState.DOWN_TRIS:
-                            downTris.Add(ParseInt(data));
-                            break;
-                        case LoadState.XP_TRIS:
-                            xpTris.Add(ParseInt(data));
-                            break;
-                        case LoadState.XN_TRIS:
-                            xnTris.Add(ParseInt(data));
-                            break;
-                        case LoadState.ZP_TRIS:
-                            zpTris.Add(ParseInt(data));
-                            break;
-                        case LoadState.ZN_TRIS:
-                            znTris.Add(ParseInt(data));
-                            break;
-                    }
+                            case LoadState.NORMAL:
+                                normals.Add(ParseVector3(data));
+                                break;
+                            case LoadState.TRIANGLE:
+                                triangles.Add(ParseInt(data));
+                                break;
+                            case LoadState.COLOR:
+                                colors.Add(ParseColor(data));
+                                break;
 
-                    dataIndex = 0;
-                    rawData = "";
-                    break;
+                            case LoadState.UP_TRIS:
+                                upTris.Add(ParseInt(data));
+                                break;
+                            case LoadState.DOWN_TRIS:
+                                downTris.Add(ParseInt(data));
+                                break;
+                            case LoadState.XP_TRIS:
+                                xpTris.Add(ParseInt(data));
+                                break;
+                            case LoadState.XN_TRIS:
+                                xnTris.Add(ParseInt(data));
+                                break;
+                            case LoadState.ZP_TRIS:
+                                zpTris.Add(ParseInt(data));
+                                break;
+                            case LoadState.ZN_TRIS:
+                                Debug.Log($"Adding {ParseInt(data)} {rawData}");
+                                znTris.Add(ParseInt(data));
+                                break;
+                        }
 
-                default:
-                    rawData += contents[i];
-                    break;
+                        dataIndex = 0;
+                        rawData = "";
+                        break;
+
+                    default:
+                        rawData += contents[i];
+                        break;
+                }
             }
+        } catch (Exception e)
+        {
+            Debug.LogError($"Failed voxel parsing at Ln: {readLine}, Ch:{lineChar} {readChar}");
+            Debug.Log($"Data Index: {dataIndex}\nRaw Data: {rawData}");
+            Debug.LogError(e);
         }
 
         verts = vertices.ToArray();
@@ -182,27 +211,16 @@ public static class VoxParser
     static VoxelPoint ParseVoxelPoint(float[] data)
     {
         return new VoxelPoint(new Vector3Int((int)data[0], (int)data[1], (int)data[2]), (int)data[3]);
-        /*  if (!mappedVoxels.ContainsKey(pos))
-          {
-              positionKeys.Add(pos);
-              mappedVoxels.Add(pos, new Voxel(new Vector3Rounded(pos, voxelSize), pos, (int)data[3]));
-          }*/
     }
 
     static Vector3 ParseVector3(float[] data)
     {
         return new Vector3Int((int)data[0], (int)data[1], (int)data[2]);
-        /*if (!mappedVoxels.ContainsKey(pos))
-        {
-            positionKeys.Add(pos);
-            mappedVoxels.Add(pos, new Voxel(new Vector3Rounded(pos, voxelSize), pos, (int)data[3]));
-        }*/
     }
 
     static Color ParseColor(float[] data)
     {
         return new Color(data[0] / 255f, data[1] / 255f, data[2] / 255f, data[3] / 255);
-        //mappedColors.Add(new Color(data[0] / 255f, data[1] / 255f, data[2] / 255f, data[3] / 255));
     }
 
     static int ParseInt(float[] data)
