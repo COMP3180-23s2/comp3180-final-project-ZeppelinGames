@@ -173,7 +173,6 @@ public static class VoxParser
                                 zpTris.Add(ParseInt(data));
                                 break;
                             case LoadState.ZN_TRIS:
-                                Debug.Log($"Adding {ParseInt(data)} {rawData}");
                                 znTris.Add(ParseInt(data));
                                 break;
                         }

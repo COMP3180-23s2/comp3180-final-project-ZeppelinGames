@@ -32,18 +32,12 @@ public class VoxelShape
             out faceTriangles[3],
             out faceTriangles[4],
             out faceTriangles[5]);
+    }
 
-        string a = "";
-        for (int i = 0; i < FaceTriangles.Length; i++)
-        {
-            string s = "";
-            for (int j = 0; j < FaceTriangles[i].Length; j++)
-            {
-                s += FaceTriangles[i][j] + ",";
-            }
-            s += "\n";
-            a += s;
-        }
-        Debug.Log(a);
+    public VoxelShape(Vector3[] verts, Vector3[] norms, int[][] tris)
+    {
+        this.verts = verts;
+        this.norms = norms;
+        this.faceTriangles = tris;
     }
 }

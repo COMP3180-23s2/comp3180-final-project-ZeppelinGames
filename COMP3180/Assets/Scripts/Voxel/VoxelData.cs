@@ -18,17 +18,23 @@ public class VoxelData
     {
         this.voxelDataFile = voxelDataFile;
         VoxParser.Parse(
-            voxelDataFile.text, 
-            out _, 
-            out voxelPoints, 
-            out _, 
-            out _, 
-            out colors, 
-            out _, 
-            out _, 
-            out _, 
-            out _, 
-            out _, 
+            voxelDataFile.text,
+            out _,
+            out voxelPoints,
+            out _,
+            out _,
+            out colors,
+            out _,
+            out _,
+            out _,
+            out _,
+            out _,
             out _);
+    }
+
+    public VoxelData(VoxelPoint[] points, Color[] colors)
+    {
+        this.voxelPoints = points;
+        this.colors = colors;
     }
 }
