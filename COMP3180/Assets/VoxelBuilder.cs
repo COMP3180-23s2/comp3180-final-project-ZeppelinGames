@@ -62,6 +62,8 @@ public class VoxelBuilder
                     voxTris.AddRange(voxShape.FaceTriangles[j]);
                 }
             }
+            // Default tris
+            voxTris.AddRange(voxShape.FaceTriangles[6]);
 
             for (int j = 0; j < voxTris.Count; j++)
             {

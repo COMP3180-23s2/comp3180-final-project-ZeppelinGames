@@ -29,6 +29,7 @@ public class VoxelData
             out _,
             out _,
             out _,
+            out _,
             out _);
     }
 

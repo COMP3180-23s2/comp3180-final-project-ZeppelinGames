@@ -27,6 +27,7 @@ public static class VoxParser
         NORMAL,
         COLOR,
 
+        DEFAULT_TRIS,
         UP_TRIS,
         DOWN_TRIS,
         XP_TRIS,
@@ -44,6 +45,7 @@ public static class VoxParser
         { 'n', LoadState.NORMAL },
         { 'c', LoadState.COLOR },
 
+        { 'a', LoadState.DEFAULT_TRIS },
         { 'u', LoadState.UP_TRIS },
         { 'd', LoadState.DOWN_TRIS },
         { 'f', LoadState.XP_TRIS },
@@ -63,7 +65,8 @@ public static class VoxParser
         out int[] xp,
         out int[] xn,
         out int[] zp,
-        out int[] zn)
+        out int[] zn,
+        out int[] dTris)
     {
         List<Vector3> vertices = new List<Vector3>();
         List<VoxelPoint> voxelPoints = new List<VoxelPoint>();
@@ -71,6 +74,7 @@ public static class VoxParser
         List<Vector3> normals = new List<Vector3>();
         List<Color> colors = new List<Color>();
 
+        List<int> defaultTris = new List<int>();
         List<int> upTris = new List<int>();
         List<int> downTris = new List<int>();
         List<int> xpTris = new List<int>();
@@ -120,14 +124,14 @@ public static class VoxParser
                     prevState = state;
                     state = stateKeys[contents[i]];
                     continue;
-                }                
+                }
 
                 switch (contents[i])
                 {
                     case ',':
                         if (!float.TryParse(rawData, out data[dataIndex]))
                         {
-                           data[dataIndex] = 0;
+                            data[dataIndex] = 0;
                         }
                         dataIndex++;
                         rawData = "";
@@ -177,6 +181,9 @@ public static class VoxParser
                             case LoadState.ZN_TRIS:
                                 znTris.Add(ParseInt(data));
                                 break;
+                            case LoadState.DEFAULT_TRIS:
+                                defaultTris.Add(ParseInt(data));
+                                break;
                         }
 
                         dataIndex = 0;
@@ -207,6 +214,7 @@ public static class VoxParser
         xn = xnTris.ToArray();
         zp = zpTris.ToArray();
         zn = znTris.ToArray();
+        dTris = defaultTris.ToArray();
     }
 
     static VoxelPoint ParseVoxelPoint(float[] data)

@@ -66,7 +66,8 @@ Creates voxel shape triangle dependant on neighbour voxels. These triangles will
 - F: Forward (1,0,0)
 - B: Back (-1,0,0)
 - L: Left (0,0,-1)
-- R: Right (0,0,1)  
+- R: Right (0,0,1) 
+- A: Default (Always applied)
 
 **Format:** `u i;j;k;`   
 **Example:** `u 0;1;2;`

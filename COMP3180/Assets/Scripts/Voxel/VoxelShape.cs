@@ -15,7 +15,7 @@ public class VoxelShape
     private Vector3[] verts;
     private Vector3[] norms;
 
-    private int[][] faceTriangles = new int[6][];
+    private int[][] faceTriangles = new int[7][];
 
     public VoxelShape(TextAsset voxelShapeFile)
     {
@@ -31,7 +31,8 @@ public class VoxelShape
             out faceTriangles[2],
             out faceTriangles[3],
             out faceTriangles[4],
-            out faceTriangles[5]);
+            out faceTriangles[5],
+            out faceTriangles[6]);
     }
 
     public VoxelShape(Vector3[] verts, Vector3[] norms, int[][] tris)
