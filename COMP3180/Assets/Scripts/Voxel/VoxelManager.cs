@@ -4,28 +4,83 @@ using UnityEngine;
 using UnityEditor;
 using System;
 
-[RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
+[RequireComponent(typeof(VoxelRenderer))]
 public class VoxelManager : MonoBehaviour
 {
     [SerializeField] private TextAsset voxelDataFile;
     [SerializeField] private TextAsset voxelShapeFile;
 
-    private VoxelBuilder voxelBuilder = new VoxelBuilder();
+    [SerializeField] private Material mat;
 
-    VoxelData voxelData;
-    VoxelShape voxelShape;
+    private VoxelRenderer voxelRenderer;
 
-    private MeshFilter meshFilter;
+    private VoxelData voxData;
+    private VoxelShape voxShape;
 
     private void Start()
     {
-        meshFilter = GetComponent<MeshFilter>();
+        UpdateMesh();
+    }
 
-        voxelData = new VoxelData(voxelDataFile);
-        voxelShape = new VoxelShape(voxelShapeFile);
+    void OnValidate()
+    {
+        UpdateMesh();
+    }
 
-        Mesh mesh = voxelBuilder.Build(voxelData, voxelShape);
-        meshFilter.mesh = mesh;
+    public void UpdateMesh()
+    {
+        if (voxelRenderer == null)
+        {
+            if (!TryGetComponent(out VoxelRenderer vr))
+            {
+                return;
+            }
+            voxelRenderer = vr;
+        }
+
+        if (voxelShapeFile == null || voxelDataFile == null)
+        {
+            return;
+        }
+
+        if (voxData == null)
+        {
+            voxData = new VoxelData(voxelDataFile);
+        }
+        if (voxShape == null)
+        {
+            voxShape = new VoxelShape(voxelShapeFile);
+        }
+
+        voxelRenderer.VoxelShape = voxShape;
+        voxelRenderer.VoxelData = voxData;
+    }
+
+    void FullFracture()
+    {
+        this.gameObject.SetActive(false);
+        for (int i = 0; i < voxData.VoxelPoints.Length; i++)
+        {
+            CreateSingleVoxel(voxData.VoxelPoints[i].Position, voxData.Colors[voxData.VoxelPoints[i].ColorIndex]);
+        }
+    }
+
+    public void CreateSingleVoxel(Vector3Int pos, Color c)
+    {
+        GameObject go = new GameObject("Voxel");
+        BoxCollider bc = go.AddComponent<BoxCollider>();
+        bc.size = Vector3.one * VoxelBuilder.VoxelSize;
+
+        go.AddComponent<Rigidbody>();
+
+        MeshRenderer mr = go.AddComponent<MeshRenderer>();
+        mr.material = mat;
+
+        go.transform.position = (Vector3)pos * VoxelBuilder.VoxelSize + transform.position;
+
+        VoxelRenderer vr = go.AddComponent<VoxelRenderer>();
+        vr.VoxelShape = new VoxelShape(voxelShapeFile);
+        vr.VoxelData = new VoxelData(new VoxelPoint[] { new VoxelPoint(Vector3Int.zero, 0) }, new Color[] { c });
     }
 
     private struct GUIButtonEvent
@@ -46,7 +101,14 @@ public class VoxelManager : MonoBehaviour
     private void Awake()
     {
         buttonEvents = new GUIButtonEvent[] {
-             new GUIButtonEvent("Rebuild", () => { voxelBuilder.Build(voxelData, voxelShape); }, "Rebuilding mesh..."),
+             new GUIButtonEvent("Rebuild", () => {
+                voxelRenderer.VoxelData = voxData;
+                voxelRenderer.VoxelShape = voxShape;
+             }, "Rebuilding mesh..."),
+
+              new GUIButtonEvent("Complete Fracture", () => {
+                    FullFracture();
+             }, "Fracturing..."),
           };
     }
 

@@ -10,9 +10,9 @@ public class VoxelData
     public VoxelPoint[] VoxelPoints => voxelPoints;
     public Color[] Colors => colors;
 
-    private TextAsset voxelDataFile;
     private VoxelPoint[] voxelPoints;
     private Color[] colors;
+    private TextAsset voxelDataFile;
 
     public VoxelData(TextAsset voxelDataFile)
     {

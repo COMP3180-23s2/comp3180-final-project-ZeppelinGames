@@ -5,19 +5,13 @@ using UnityEngine;
 
 public class VoxelBuilder
 {
-    private float voxelSize = 1f;
-    private float hVoxelSize = 0.5f;
+    public static float VoxelSize = 0.5f;
+    public static float HVoxelSize => VoxelBuilder.VoxelSize * 0.5f;
 
     // Voxel Data 
     private List<Vector3Int> positionKeys = new List<Vector3Int>();
     private Dictionary<Vector3Int, VoxelPoint> mappedVoxels = new Dictionary<Vector3Int, VoxelPoint>();
     private List<Color> mappedColors = new List<Color>();
-
-    public VoxelBuilder(float voxelSize = 1f)
-    {
-        this.voxelSize = 1f;
-        this.hVoxelSize = this.voxelSize / 2f;
-    }
 
     public Mesh Build(VoxelData voxData, VoxelShape voxShape)
     {
@@ -32,11 +26,8 @@ public class VoxelBuilder
             }
         }
 
-        for (int i = 0; i < voxData.Colors.Length; i++)
-        {
-            mappedColors.Add(voxData.Colors[i]);
-        }
-
+        mappedColors.AddRange(voxData.Colors);
+ 
         // Build Mesh
         List<Vector3> verts = new List<Vector3>();
         List<int> tris = new List<int>();
@@ -72,7 +63,7 @@ public class VoxelBuilder
 
             for (int j = 0; j < voxShape.Vertices.Length; j++)
             {
-                verts.Add(vox.Position + (voxShape.Vertices[j] * hVoxelSize));
+                verts.Add((Vector3)vox.Position * VoxelSize + (voxShape.Vertices[j] * HVoxelSize));
 
                 Color c = new Color(1, 0, 1, 1);
                 if (vox.ColorIndex >= 0 && vox.ColorIndex < mappedColors.Count)

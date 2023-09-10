@@ -13,6 +13,12 @@ public struct VoxelPoint
         this.Position = v;
         this.ColorIndex = cIn;
     }
+
+    public VoxelPoint(int x, int y, int z, int cIn)
+    {
+        this.Position = new Vector3Int(x, y, z);
+        this.ColorIndex = cIn;
+    }
 }
 
 public static class VoxParser
