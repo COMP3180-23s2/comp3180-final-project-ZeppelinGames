@@ -68,19 +68,23 @@ public class VoxelManager : MonoBehaviour
     public void CreateSingleVoxel(Vector3Int pos, Color c)
     {
         GameObject go = new GameObject("Voxel");
-        BoxCollider bc = go.AddComponent<BoxCollider>();
-        bc.size = Vector3.one * VoxelBuilder.VoxelSize;
-
+        
         go.AddComponent<Rigidbody>();
 
+        // Set material
         MeshRenderer mr = go.AddComponent<MeshRenderer>();
         mr.material = mat;
 
+        // Set position
         go.transform.position = (Vector3)pos * VoxelBuilder.VoxelSize + transform.position;
 
+        // Add voxel renderer
         VoxelRenderer vr = go.AddComponent<VoxelRenderer>();
         vr.VoxelShape = new VoxelShape(voxelShapeFile);
         vr.VoxelData = new VoxelData(new VoxelPoint[] { new VoxelPoint(Vector3Int.zero, 0) }, new Color[] { c });
+
+        // Add voxel collider
+        go.AddComponent<VoxelCollider>();
     }
 
     private struct GUIButtonEvent
