@@ -6,8 +6,11 @@ using UnityEngine;
 [RequireComponent(typeof(VoxelRenderer))]
 public class VoxelCollider : MonoBehaviour
 {
+    private Dictionary<BoxCollider, VoxelPoint> colliderPoint = new Dictionary<BoxCollider, VoxelPoint>();
     private List<BoxCollider> colliders = new List<BoxCollider>();
     private VoxelRenderer renderer;
+
+    public VoxelRenderer Renderer => renderer;
 
     private void Start()
     {
