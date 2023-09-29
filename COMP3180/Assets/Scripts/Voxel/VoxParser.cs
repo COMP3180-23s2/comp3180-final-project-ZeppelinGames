@@ -8,6 +8,8 @@ public struct VoxelPoint
     public Vector3Int Position;
     public int ColorIndex;
 
+    public Vector3 WorldPosition => (Vector3)this.Position * VoxelBuilder.VoxelSize;
+
     public VoxelPoint(Vector3Int v, int cIn)
     {
         this.Position = v;

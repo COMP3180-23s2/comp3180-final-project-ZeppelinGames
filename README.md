@@ -80,10 +80,17 @@ Wireframe Voxel | Rendered Voxel | Fixed Normals
 - Wrote documentation for key scripts/file formats
 
 ## Mid-semster break 1
+- nothing
 
 ## Mid-semster break 2
+- nothing
 
 ## Week 8 - Developing your Project
+- Working on point based fracturing (instead of fracturing an entire model)
+
+- Working on generation of colliders
+    - Optimisation of collider shapes
+    - Decreasing amount of colliders
 
 ## Week 9 - Developing your Project
 
