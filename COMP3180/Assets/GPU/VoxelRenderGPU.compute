@@ -1,0 +1,35 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+struct Voxel {
+    float3 position;
+};
+
+StructuredBuffer<Voxel> _Voxels;
+
+struct GeneratedVertex {
+    float3 position;
+    float3 normal;
+};
+
+RWStructuredBuffer<GeneratedVertex> _GeneratedVerties;
+RWStructuredBuffer<int> _GeneratedIndices;
+
+int _NumSourceTriangles
+
+[numthreads(32, 1, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+    
+    // Dont want more threads than triangles
+    if ((int)id.x >= _NumSourceTriangles) {
+        return;
+    }
+
+    Voxel v = _Voxels[id.x];
+
+}

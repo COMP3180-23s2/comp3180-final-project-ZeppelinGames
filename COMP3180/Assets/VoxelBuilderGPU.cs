@@ -1,10 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
-public class VoxelBuilder
+public class VoxelBuilderGPU
 {
+    public ComputeShader shader;
+
     public static float VoxelSize = 0.5f;
     public static float HVoxelSize => VoxelSize * 0.5f;
 
@@ -15,6 +19,28 @@ public class VoxelBuilder
 
     public Mesh Build(VoxelData voxData, VoxelShape voxShape)
     {
+        Vector3Int[] points = new Vector3Int[voxData.VoxelPoints.Length];
+        for (int i = 0; i < voxData.VoxelPoints.Length; i++)
+        {
+            points[i] = voxData.VoxelPoints[i].Position;
+        }
+
+        int totalSize = (sizeof(float) * 3) * points.Length;
+        ComputeBuffer buffer = new ComputeBuffer(points.Length, totalSize);
+
+        buffer.SetData(points);
+
+        shader.SetBuffer(0, "voxels", buffer);
+        shader.SetFloat("voxelLength", points.Length);
+        shader.Dispatch(0, points.Length / 10, 1, 1);
+
+        buffer.GetData(points);
+
+        // do stuff with returned data
+
+        buffer.Dispose();
+
+
         // Copy data
         for (int i = 0; i < voxData.VoxelPoints.Length; i++)
         {
@@ -27,7 +53,7 @@ public class VoxelBuilder
         }
 
         mappedColors.AddRange(voxData.Colors);
- 
+
         // Build Mesh
         List<Vector3> verts = new List<Vector3>();
         List<int> tris = new List<int>();
