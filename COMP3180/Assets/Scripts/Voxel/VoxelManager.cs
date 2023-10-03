@@ -52,8 +52,8 @@ public class VoxelManager : MonoBehaviour
             voxShape = new VoxelShape(voxelShapeFile);
         }
 
-        voxelRenderer.VoxelShape = voxShape;
-        voxelRenderer.VoxelData = voxData;
+     /*   voxelRenderer.VoxelShape = voxShape;
+        voxelRenderer.VoxelData = voxData;*/
     }
 
     void FullFracture()
@@ -80,9 +80,9 @@ public class VoxelManager : MonoBehaviour
 
         // Add voxel renderer
         VoxelRenderer vr = go.AddComponent<VoxelRenderer>();
-        vr.VoxelShape = new VoxelShape(voxelShapeFile);
+     /*   vr.VoxelShape = new VoxelShape(voxelShapeFile);
         vr.VoxelData = new VoxelData(new VoxelPoint[] { new VoxelPoint(Vector3Int.zero, 0) }, new Color[] { c });
-
+*/
         // Add voxel collider
         go.AddComponent<VoxelCollider>();
     }
@@ -106,8 +106,8 @@ public class VoxelManager : MonoBehaviour
     {
         buttonEvents = new GUIButtonEvent[] {
              new GUIButtonEvent("Rebuild", () => {
-                voxelRenderer.VoxelData = voxData;
-                voxelRenderer.VoxelShape = voxShape;
+             /*   voxelRenderer.VoxelData = voxData;
+                voxelRenderer.VoxelShape = voxShape;*/
              }, "Rebuilding mesh..."),
 
               new GUIButtonEvent("Complete Fracture", () => {

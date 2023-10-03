@@ -3,18 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VoxelBuilder
+public static class VoxelBuilder
 {
     public static float VoxelSize = 0.5f;
     public static float HVoxelSize => VoxelBuilder.VoxelSize * 0.5f;
 
-    // Voxel Data 
-    private List<Vector3Int> positionKeys = new List<Vector3Int>();
-    private Dictionary<Vector3Int, VoxelPoint> mappedVoxels = new Dictionary<Vector3Int, VoxelPoint>();
-    private List<Color> mappedColors = new List<Color>();
-
-    public Mesh Build(VoxelData voxData, VoxelShape voxShape)
+    public static Mesh Build(VoxelData voxData, VoxelShape voxShape)
     {
+        List<Vector3Int> positionKeys = new List<Vector3Int>();
+        Dictionary<Vector3Int, VoxelPoint> mappedVoxels = new Dictionary<Vector3Int, VoxelPoint>();
+        List<Color> mappedColors = new List<Color>();
+
         // Copy data
         for (int i = 0; i < voxData.VoxelPoints.Length; i++)
         {
@@ -27,7 +26,7 @@ public class VoxelBuilder
         }
 
         mappedColors.AddRange(voxData.Colors);
- 
+
         // Build Mesh
         List<Vector3> verts = new List<Vector3>();
         List<int> tris = new List<int>();
