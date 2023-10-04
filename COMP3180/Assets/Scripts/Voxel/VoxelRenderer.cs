@@ -2,9 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[ExecuteInEditMode]
 [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
 public class VoxelRenderer : MonoBehaviour
 {
+    public delegate void MeshUpdateDelegate();
+    public MeshUpdateDelegate meshUpdate;
+
     [Header("Data")]
     [SerializeField] private TextAsset voxelDataFile;
     [SerializeField] private bool overrideShape = false;
@@ -13,9 +18,22 @@ public class VoxelRenderer : MonoBehaviour
     [Header("Material")]
     [SerializeField] private bool overrideDefaultMaterial = false;
     [SerializeField] private Material mat;
+    public Material Material
+    {
+        get
+        {
+            return mat == null || (mat != null && !overrideDefaultMaterial) ? DefaultMaterial : mat;
+        }
+    }
 
     public VoxelData VoxelData => voxelData;
-    public VoxelShape VoxelShape => voxelShape;
+    public VoxelShape VoxelShape
+    {
+        get
+        {
+            return voxelShape == null ? DefaultShape : voxelShape;
+        }
+    }
 
     private VoxelData voxelData;
     private VoxelShape voxelShape;
@@ -65,7 +83,7 @@ public class VoxelRenderer : MonoBehaviour
         }
     }
     private static TextAsset defaultShape;
-    public static TextAsset DefaultShape
+    public static VoxelShape DefaultShape
     {
         get
         {
@@ -73,30 +91,76 @@ public class VoxelRenderer : MonoBehaviour
             {
                 defaultShape = Resources.Load<TextAsset>("Voxel/DefaultShape");
             }
-            return defaultShape;
+            return new VoxelShape(defaultShape);
         }
     }
     #endregion
 
-    public bool UpdateMesh()
+    private void Start()
     {
-        if (voxelShapeFile == null && voxelDataFile == null)
+        if (voxelDataFile != null)
         {
-            Debug.LogWarning("Missing Voxel Data or Shape file(s)");
+            LoadMesh();
+            BuildMesh();
+        }
+    }
+
+    public bool LoadMesh()
+    {
+        if (voxelDataFile == null)
+        {
+            Debug.LogWarning("Missing Voxel Data file");
             return false;
         }
 
         // Re-read and load data from file
         voxelData = new VoxelData(voxelDataFile);
-        voxelShape = new VoxelShape(voxelShapeFile);
+        if (voxelShapeFile != null)
+        {
+            voxelShape = new VoxelShape(voxelShapeFile);
+        }
+        return true;
+    }
 
-        // Update material
-        MeshRenderer.material = overrideDefaultMaterial ? mat : DefaultMaterial;
+    public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
+    {
+        if (vd != null)
+        {
+            voxelData = vd;
+        }
+        if (vs != null)
+        {
+            voxelShape = vs;
+        }
+
+        if (VoxelData == null || VoxelShape == null)
+        {
+            Debug.LogWarning("Mesh build failed. Invalid voxel data or shape");
+            return false;
+        }
+
+        if (MeshRenderer.material == null)
+        {
+            // Update material.
+            MeshRenderer.material = Material;
+        }
 
         // Build mesh
-        Mesh mesh = VoxelBuilder.Build(voxelData, voxelShape);
-        MeshFilter.sharedMesh = mesh;
+        /*Mesh mesh = VoxelBuilder.Build(VoxelData, VoxelShape);
+        MeshFilter.sharedMesh = mesh;*/
 
+        VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
+
+        if (MeshFilter.mesh == null) { MeshFilter.mesh = new Mesh(); }
+        MeshFilter.mesh.Clear();
+            
+        MeshFilter.mesh.SetVertices(v);
+        MeshFilter.mesh.SetTriangles(t, 0);
+        MeshFilter.mesh.SetNormals(n);
+        MeshFilter.mesh.SetColors(c);
+
+        // Update other linked components
+        meshUpdate?.Invoke();
         return true;
     }
 }

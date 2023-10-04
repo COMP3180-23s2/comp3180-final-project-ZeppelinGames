@@ -62,7 +62,14 @@ public class VoxelRendererEditor : Editor
         VoxelRenderer renderer = (VoxelRenderer)target;
         if (renderer != null)
         {
-            renderer.UpdateMesh();
+            renderer.LoadMesh();
+            renderer.BuildMesh();
+
+            if (renderer.TryGetComponent(out VoxelCollider vc))
+            {
+                Debug.Log("Updating collider");
+                vc.UpdateCollider();
+            }
         }
     }
 }
