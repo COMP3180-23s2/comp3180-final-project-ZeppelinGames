@@ -97,6 +97,7 @@ Wireframe Voxel | Rendered Voxel | Fixed Normals
 - Removed need for VoxelManager. All Voxel rendering process now happens in voxel renderer
 - Added performance visualisation GUI
 - Added performance test scene
+- Mesh generation memory optimisation
 
 ## Week 10 - Developing your Project
 
