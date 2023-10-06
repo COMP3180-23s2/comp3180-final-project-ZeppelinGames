@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[ExecuteInEditMode]
 [RequireComponent(typeof(VoxelRenderer))]
 public class VoxelCollider : MonoBehaviour
 {
@@ -14,6 +13,12 @@ public class VoxelCollider : MonoBehaviour
 
     private void Start()
     {
+        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
+        for (int i = 0; i < cols.Length; i++)
+        {
+            Destroy(cols[i]);
+        }
+
         voxRenderer = GetComponent<VoxelRenderer>();
         voxRenderer.meshUpdate += MeshUpdate;
         UpdateCollider();

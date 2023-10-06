@@ -142,7 +142,7 @@ public class VoxelRenderer : MonoBehaviour
         if (MeshRenderer.material == null)
         {
             // Update material.
-            MeshRenderer.material = Material;
+            MeshRenderer.sharedMaterial = Material;
         }
 
         // Build mesh

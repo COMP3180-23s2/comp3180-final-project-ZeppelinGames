@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class VoxelBuilder
 {
-    public static float VoxelSize = 0.25f;
+    public static float VoxelSize = 0.5f;
     public static float HVoxelSize => VoxelBuilder.VoxelSize * 0.5f;
 
     public static Mesh Build(VoxelData voxData, VoxelShape voxShape)
