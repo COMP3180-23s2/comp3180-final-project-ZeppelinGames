@@ -79,6 +79,7 @@ public class VoxelBuilderGPU
                     voxTris.AddRange(voxShape.FaceTriangles[j]);
                 }
             }
+
             // Default tris
             voxTris.AddRange(voxShape.FaceTriangles[6]);
 

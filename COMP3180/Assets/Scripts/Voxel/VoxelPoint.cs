@@ -2,10 +2,9 @@
 
 public struct VoxelPoint
 {
+    public Vector3 LocalPosition => (Vector3)this.Position * VoxelBuilder.VoxelSize;
     public Vector3Int Position;
     public int ColorIndex;
-
-    public Vector3 WorldPosition => (Vector3)this.Position * VoxelBuilder.VoxelSize;
 
     public VoxelPoint(Vector3Int v, int cIn)
     {
@@ -17,5 +16,10 @@ public struct VoxelPoint
     {
         this.Position = new Vector3Int(x, y, z);
         this.ColorIndex = cIn;
+    }
+
+    public Vector3 WorldPosition(Transform t)
+    {
+        return t.TransformVector((Vector3)this.Position * VoxelBuilder.VoxelSize);
     }
 }

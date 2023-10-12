@@ -34,12 +34,15 @@ public class VoxelSelector : MonoBehaviour
                         return;
                     }
 
+                    Vector3 hitCentre = hit.point - (hit.normal * VoxelBuilder.HVoxelSize);
+
                     VoxelPoint[] points = vc.Renderer.VoxelData.VoxelPoints;
                     List<VoxelPoint> fractureChunk = new List<VoxelPoint>();
                     List<VoxelPoint> cutChunk = new List<VoxelPoint>();
+
                     for (int i = 0; i < points.Length; i++)
                     {
-                        if (Vector3.Distance(hit.point, points[i].WorldPosition) < 1f)
+                        if (Vector3.Distance(vc.transform.InverseTransformPoint(hitCentre), points[i].LocalPosition) < VoxelBuilder.HVoxelSize)
                         {
                             fractureChunk.Add(points[i]);
                         }
@@ -49,15 +52,23 @@ public class VoxelSelector : MonoBehaviour
                         }
                     }
 
-                    vc.Renderer.BuildMesh(new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors));
-                    
-                    newRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+                    if (cutChunk.Count == 0 || fractureChunk.Count == 0)
+                    {
+                        return;
+                    }
+
+                    VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+                    vc.Renderer.UpdateVoxelData(nVD);
+                    vc.RefreshCollider();
+                    vc.Renderer.BuildMesh(nVD);
+
+                    VoxelRenderer newVR = NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors);
                 }
             }
         }
     }
 
-    VoxelRenderer newRenderer(VoxelPoint[] points, Color[] cols) 
+    VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols) 
     {
         VoxelRenderer rend = new GameObject().AddComponent<VoxelRenderer>();
         rend.BuildMesh(new VoxelData(points, cols));

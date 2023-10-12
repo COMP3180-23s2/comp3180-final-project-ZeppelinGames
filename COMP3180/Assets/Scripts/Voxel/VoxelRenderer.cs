@@ -7,8 +7,11 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
 public class VoxelRenderer : MonoBehaviour
 {
-    public delegate void MeshUpdateDelegate();
-    public MeshUpdateDelegate meshUpdate;
+    public delegate void MeshBuildStartDelegate();
+    public MeshBuildStartDelegate meshBuildStarted;
+ 
+    public delegate void MeshBuildCompleteDelegate();
+    public MeshBuildCompleteDelegate meshBuildComplete;
 
     [Header("Data")]
     [SerializeField] private TextAsset voxelDataFile;
@@ -122,7 +125,7 @@ public class VoxelRenderer : MonoBehaviour
         return true;
     }
 
-    public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
+    public void UpdateVoxelData(VoxelData vd = null, VoxelShape vs = null)
     {
         if (vd != null)
         {
@@ -132,6 +135,13 @@ public class VoxelRenderer : MonoBehaviour
         {
             voxelShape = vs;
         }
+    }
+
+    public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
+    {
+        meshBuildStarted?.Invoke();
+
+        UpdateVoxelData(vd, vs);
 
         if (VoxelData == null || VoxelShape == null)
         {
@@ -139,28 +149,25 @@ public class VoxelRenderer : MonoBehaviour
             return false;
         }
 
-        if (MeshRenderer.material == null)
+        if (MeshRenderer.sharedMaterial == null)
         {
             // Update material.
             MeshRenderer.sharedMaterial = Material;
         }
 
-        // Build mesh
-        /*Mesh mesh = VoxelBuilder.Build(VoxelData, VoxelShape);
-        MeshFilter.sharedMesh = mesh;*/
-
         VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
 
-        if (MeshFilter.mesh == null) { MeshFilter.mesh = new Mesh(); }
-        MeshFilter.mesh.Clear();
+        if (MeshFilter.sharedMesh == null) { MeshFilter.sharedMesh = new Mesh(); }
+
+        MeshFilter.sharedMesh.Clear();
             
-        MeshFilter.mesh.SetVertices(v);
-        MeshFilter.mesh.SetTriangles(t, 0);
-        MeshFilter.mesh.SetNormals(n);
-        MeshFilter.mesh.SetColors(c);
+        MeshFilter.sharedMesh.SetVertices(v);
+        MeshFilter.sharedMesh.SetTriangles(t, 0);
+        MeshFilter.sharedMesh.SetNormals(n);
+        MeshFilter.sharedMesh.SetColors(c);
 
         // Update other linked components
-        meshUpdate?.Invoke();
+        meshBuildComplete?.Invoke();
         return true;
     }
 }

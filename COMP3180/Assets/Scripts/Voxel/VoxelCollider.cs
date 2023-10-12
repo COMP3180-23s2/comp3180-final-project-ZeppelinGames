@@ -7,6 +7,8 @@ using UnityEngine;
 public class VoxelCollider : MonoBehaviour
 {
     private List<BoxCollider> colliders = new List<BoxCollider>();
+    private List<int[]> pointsLinks = new List<int[]>();
+
     private VoxelRenderer voxRenderer;
 
     public VoxelRenderer Renderer => voxRenderer;
@@ -20,16 +22,16 @@ public class VoxelCollider : MonoBehaviour
         }
 
         voxRenderer = GetComponent<VoxelRenderer>();
-        voxRenderer.meshUpdate += MeshUpdate;
-        UpdateCollider();
+        voxRenderer.meshBuildComplete += MeshBuildEnd;
+        RefreshCollider();
     }
 
-    void MeshUpdate()
+    void MeshBuildEnd()
     {
-        UpdateCollider();
+        RefreshCollider();
     }
 
-    public void UpdateCollider()
+    public void RefreshCollider()
     {
         if (voxRenderer == null)
         {
@@ -42,50 +44,35 @@ public class VoxelCollider : MonoBehaviour
             return;
         }
 
-        VoxelPoint[] points = voxRenderer.VoxelData.VoxelPoints;
         for (int i = 0; i < colliders.Count; i++)
         {
-#if UNITY_EDITOR
-            if (!EditorApplication.isPlaying)
-            {
-                Destroy(colliders[i]);
-            }
-            else
-            {
-                DestroyImmediate(colliders[i]);
-            }
-#else
-            Destroy(colliders[i]);
-#endif
+            DestroyImmediate(colliders[i]);
         }
         colliders.Clear();
+        pointsLinks.Clear();
 
+        VoxelPoint[] points = voxRenderer.VoxelData.VoxelPoints;
         for (int i = 0; i < points.Length; i++)
         {
             BoxCollider c = GetCollider();
-            c.center = points[i].WorldPosition;
+            c.center = points[i].LocalPosition;
+            
             c.size = Vector3.one * VoxelBuilder.VoxelSize;
+
+            pointsLinks.Add(new int[] { i });
         }
     }
-    /*
-    #if UNITY_EDITOR
-        private void OnDestroy()
-        {
-            if (!EditorApplication.isPlaying)
-            {
-                for (int i = 0; i < colliders.Count; i++)
-                {
-                    DestroyImmediate(colliders[i]);
-                }
 
-                BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    DestroyImmediate(cols[i]);
-                }
-            }
+#if UNITY_EDITOR
+    public void ResetCollidersEditor()
+    {
+        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
+        for (int i = 0; i < cols.Length; i++)
+        {
+            DestroyImmediate(cols[i]);
         }
-    #endif*/
+    }
+#endif
 
     BoxCollider GetCollider()
     {

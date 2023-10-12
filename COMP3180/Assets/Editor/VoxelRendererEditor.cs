@@ -68,7 +68,8 @@ public class VoxelRendererEditor : Editor
             if (renderer.TryGetComponent(out VoxelCollider vc))
             {
                 Debug.Log("Updating collider");
-                vc.UpdateCollider();
+                vc.ResetCollidersEditor();
+                vc.RefreshCollider();
             }
         }
     }
