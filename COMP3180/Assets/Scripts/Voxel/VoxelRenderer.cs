@@ -2,64 +2,165 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[ExecuteInEditMode]
 [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
 public class VoxelRenderer : MonoBehaviour
 {
-    private VoxelBuilder voxelBuilder = new VoxelBuilder();
+    public delegate void MeshUpdateDelegate();
+    public MeshUpdateDelegate meshUpdate;
 
-    public VoxelData VoxelData
+    [Header("Data")]
+    [SerializeField] private TextAsset voxelDataFile;
+    [SerializeField] private bool overrideShape = false;
+    [SerializeField] private TextAsset voxelShapeFile;
+
+    [Header("Material")]
+    [SerializeField] private bool overrideDefaultMaterial = false;
+    [SerializeField] private Material mat;
+    public Material Material
     {
-        get => voxelData;
-        set
+        get
         {
-            if (value == voxelData)
-            {
-                return;
-            }
-
-            voxelData = value;
-            UpdateMesh();
+            return mat == null || (mat != null && !overrideDefaultMaterial) ? DefaultMaterial : mat;
         }
     }
 
+    public VoxelData VoxelData => voxelData;
     public VoxelShape VoxelShape
     {
-        get => voxelShape;
-        set
+        get
         {
-            if (value == voxelShape)
-            {
-                return;
-            }
-
-            voxelShape = value;
-            UpdateMesh();
+            return voxelShape == null ? DefaultShape : voxelShape;
         }
     }
 
     private VoxelData voxelData;
     private VoxelShape voxelShape;
+
+    // Mesh Components
+    #region Mesh
     private MeshFilter meshFilter;
+    private MeshRenderer meshRenderer;
 
-    public bool UpdateMesh()
+    public MeshFilter MeshFilter
     {
-        if (meshFilter == null)
+        get
         {
-            if (!TryGetComponent(out MeshFilter mf))
+            if (meshFilter == null)
             {
-                return false;
+                meshFilter = GetComponent<MeshFilter>();
             }
-
-            meshFilter = mf;
+            return meshFilter;
         }
+    }
 
-        if (voxelData == null || voxelShape == null)
+    public MeshRenderer MeshRenderer
+    {
+        get
         {
+            if (meshRenderer == null)
+            {
+                meshRenderer = GetComponent<MeshRenderer>();
+            }
+            return meshRenderer;
+        }
+    }
+    #endregion
+
+    // Static Varibles / Defaults
+    #region STATICS
+    private static Material defaultMaterial;
+    public static Material DefaultMaterial
+    {
+        get
+        {
+            if (defaultMaterial == null)
+            {
+                defaultMaterial = Resources.Load<Material>("Voxel/VertexColor");
+            }
+            return defaultMaterial;
+        }
+    }
+    private static TextAsset defaultShape;
+    public static VoxelShape DefaultShape
+    {
+        get
+        {
+            if (defaultShape == null)
+            {
+                defaultShape = Resources.Load<TextAsset>("Voxel/DefaultShape");
+            }
+            return new VoxelShape(defaultShape);
+        }
+    }
+    #endregion
+
+    private void Start()
+    {
+        if (voxelDataFile != null)
+        {
+            LoadMesh();
+            BuildMesh();
+        }
+    }
+
+    public bool LoadMesh()
+    {
+        if (voxelDataFile == null)
+        {
+            Debug.LogWarning("Missing Voxel Data file");
             return false;
         }
 
-        Mesh mesh = voxelBuilder.Build(voxelData, voxelShape);
-        meshFilter.sharedMesh = mesh;
+        // Re-read and load data from file
+        voxelData = new VoxelData(voxelDataFile);
+        if (voxelShapeFile != null)
+        {
+            voxelShape = new VoxelShape(voxelShapeFile);
+        }
+        return true;
+    }
+
+    public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
+    {
+        if (vd != null)
+        {
+            voxelData = vd;
+        }
+        if (vs != null)
+        {
+            voxelShape = vs;
+        }
+
+        if (VoxelData == null || VoxelShape == null)
+        {
+            Debug.LogWarning("Mesh build failed. Invalid voxel data or shape");
+            return false;
+        }
+
+        if (MeshRenderer.material == null)
+        {
+            // Update material.
+            MeshRenderer.sharedMaterial = Material;
+        }
+
+        // Build mesh
+        /*Mesh mesh = VoxelBuilder.Build(VoxelData, VoxelShape);
+        MeshFilter.sharedMesh = mesh;*/
+
+        VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
+
+        if (MeshFilter.mesh == null) { MeshFilter.mesh = new Mesh(); }
+        MeshFilter.mesh.Clear();
+            
+        MeshFilter.mesh.SetVertices(v);
+        MeshFilter.mesh.SetTriangles(t, 0);
+        MeshFilter.mesh.SetNormals(n);
+        MeshFilter.mesh.SetColors(c);
+
+        // Update other linked components
+        meshUpdate?.Invoke();
         return true;
     }
 }

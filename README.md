@@ -93,6 +93,11 @@ Wireframe Voxel | Rendered Voxel | Fixed Normals
     - Decreasing amount of colliders
 
 ## Week 9 - Developing your Project
+- Updated VoxelRenderer to live update
+- Removed need for VoxelManager. All Voxel rendering process now happens in voxel renderer
+- Added performance visualisation GUI
+- Added performance test scene
+- Mesh generation memory optimisation
 
 ## Week 10 - Developing your Project
 

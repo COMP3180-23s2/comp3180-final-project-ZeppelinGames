@@ -1,79 +1,97 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
-
 
 [RequireComponent(typeof(VoxelRenderer))]
 public class VoxelCollider : MonoBehaviour
 {
-    private Dictionary<BoxCollider, VoxelPoint> colliderPoint = new Dictionary<BoxCollider, VoxelPoint>();
     private List<BoxCollider> colliders = new List<BoxCollider>();
-    private VoxelRenderer renderer;
+    private VoxelRenderer voxRenderer;
 
-    public VoxelRenderer Renderer => renderer;
+    public VoxelRenderer Renderer => voxRenderer;
 
     private void Start()
     {
+        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
+        for (int i = 0; i < cols.Length; i++)
+        {
+            Destroy(cols[i]);
+        }
+
+        voxRenderer = GetComponent<VoxelRenderer>();
+        voxRenderer.meshUpdate += MeshUpdate;
         UpdateCollider();
     }
 
-    private void OnValidate()
+    void MeshUpdate()
     {
         UpdateCollider();
     }
 
-    void UpdateCollider()
+    public void UpdateCollider()
     {
-        if (renderer == null)
+        if (voxRenderer == null)
         {
-            renderer = GetComponent<VoxelRenderer>();
-            return;
+            voxRenderer = GetComponent<VoxelRenderer>();
         }
-        if(renderer.VoxelData == null || renderer.VoxelData.VoxelPoints == null)
+
+        if (voxRenderer.VoxelData == null)
         {
+            Debug.Log($"NO VOXEL DATA ON {this.gameObject.name}");
             return;
         }
 
-        VoxelPoint[] points = renderer.VoxelData.VoxelPoints;
+        VoxelPoint[] points = voxRenderer.VoxelData.VoxelPoints;
         for (int i = 0; i < colliders.Count; i++)
         {
-            colliders[i].enabled = false;
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying)
+            {
+                Destroy(colliders[i]);
+            }
+            else
+            {
+                DestroyImmediate(colliders[i]);
+            }
+#else
+            Destroy(colliders[i]);
+#endif
         }
+        colliders.Clear();
 
         for (int i = 0; i < points.Length; i++)
         {
-            BoxCollider c = PoolCollider();
+            BoxCollider c = GetCollider();
             c.center = points[i].WorldPosition;
             c.size = Vector3.one * VoxelBuilder.VoxelSize;
         }
     }
-
-    BoxCollider PoolCollider()
-    {
-        if (TryGetPoolCollider(out BoxCollider c))
+    /*
+    #if UNITY_EDITOR
+        private void OnDestroy()
         {
-            return c;
-        }
-        else
-        {
-            BoxCollider col = gameObject.AddComponent<BoxCollider>();
-            col.hideFlags = HideFlags.HideInInspector;
-            colliders.Add(col);
-            return col;
-        }
-    }
-
-    bool TryGetPoolCollider(out BoxCollider c)
-    {
-        for (int i = 0; i < colliders.Count; i++)
-        {
-            if (!colliders[i].enabled)
+            if (!EditorApplication.isPlaying)
             {
-                c = colliders[i];
-                return true;
+                for (int i = 0; i < colliders.Count; i++)
+                {
+                    DestroyImmediate(colliders[i]);
+                }
+
+                BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    DestroyImmediate(cols[i]);
+                }
             }
         }
-        c = null;
-        return false;
+    #endif*/
+
+    BoxCollider GetCollider()
+    {
+        BoxCollider col = gameObject.AddComponent<BoxCollider>();
+        col.hideFlags = HideFlags.HideInInspector;
+        colliders.Add(col);
+        return col;
     }
 }
