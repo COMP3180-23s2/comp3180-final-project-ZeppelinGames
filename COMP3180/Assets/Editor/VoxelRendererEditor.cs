@@ -13,6 +13,8 @@ public class VoxelRendererEditor : Editor
     SerializedProperty overrideDefaultMaterialBool;
     SerializedProperty material;
 
+    bool editModeActive;
+
     void OnEnable()
     {
         overrideShape = serializedObject.FindProperty("overrideShape");
@@ -40,7 +42,7 @@ public class VoxelRendererEditor : Editor
             EditorGUILayout.PropertyField(material);
         }
 
-        bool edit = GUILayout.Button("Edit Voxel");
+        bool edit = GUILayout.Button(editModeActive ? "Stop editing" : "Edit Voxel");
 
         bool refresh = GUILayout.Button("Refresh Voxel");
 
@@ -53,7 +55,14 @@ public class VoxelRendererEditor : Editor
 
         if (edit)
         {
-            // open editor window
+            // toggle edit mode
+            editModeActive = !editModeActive;
+            if (!editModeActive)
+            {
+                // just exited edit mode,
+                // write file
+                // update reference
+            }
         }
     }
 

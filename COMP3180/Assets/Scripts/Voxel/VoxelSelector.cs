@@ -63,6 +63,7 @@ public class VoxelSelector : MonoBehaviour
                     vc.Renderer.BuildMesh(nVD);
 
                     VoxelRenderer newVR = NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+                    newVR.transform.SetPositionAndRotation(hitCentre * VoxelBuilder.HVoxelSize, vc.transform.rotation);
                 }
             }
         }
