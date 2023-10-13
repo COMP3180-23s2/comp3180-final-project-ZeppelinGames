@@ -100,6 +100,18 @@ Wireframe Voxel | Rendered Voxel | Fixed Normals
 - Mesh generation memory optimisation
 
 ## Week 10 - Developing your Project
+- Setup first person character controller 
+- Fixed positioning of fractured of voxel meshes
+    - Had an issue with fractured meshes spawning in the incorrect location do to local-world transformations
+- Updated VoxelRenderer  
+
+ Renderer | Expanded 
+:--------: | :--------:  
+ ![Voxel Renderer](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/VoxelRenderer.PNG) | ![Voxel Renderer Expanded](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/VoxelRendererExpanded.PNG)  
+![Renderer Object](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/VoxelRendererObject.PNG) | ![Renderer Object Override](https://github.com/COMP3180-23s2/comp3180-final-project-ZeppelinGames/blob/main/Documentation/VoxelRendererObjectOverride.PNG)  
+
+- Resolving issues with meshes fracturing and using physics accordingly
+
 
 ## Week 11 - Evaluation
 

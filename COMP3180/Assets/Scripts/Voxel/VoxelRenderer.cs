@@ -9,7 +9,7 @@ public class VoxelRenderer : MonoBehaviour
 {
     public delegate void MeshBuildStartDelegate();
     public MeshBuildStartDelegate meshBuildStarted;
- 
+
     public delegate void MeshBuildCompleteDelegate();
     public MeshBuildCompleteDelegate meshBuildComplete;
 
@@ -135,6 +135,8 @@ public class VoxelRenderer : MonoBehaviour
         {
             voxelShape = vs;
         }
+
+        GroupAndFracture();
     }
 
     public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
@@ -160,7 +162,7 @@ public class VoxelRenderer : MonoBehaviour
         if (MeshFilter.sharedMesh == null) { MeshFilter.sharedMesh = new Mesh(); }
 
         MeshFilter.mesh.Clear();
-            
+
         MeshFilter.mesh.SetVertices(v);
         MeshFilter.mesh.SetTriangles(t, 0);
         MeshFilter.mesh.SetNormals(n);
@@ -169,5 +171,83 @@ public class VoxelRenderer : MonoBehaviour
         // Update other linked components
         meshBuildComplete?.Invoke();
         return true;
+    }
+
+    public void GroupAndFracture()
+    {
+        if (VoxelData.VoxelPoints.Length <= 0)
+        {
+            return;
+        }
+
+        // pick point
+
+        // recusively check for neighbours
+        List<VoxelPoint> allPoints = new List<VoxelPoint>(VoxelData.VoxelPoints);
+        List<List<VoxelPoint>> groupedPoints = new List<List<VoxelPoint>>();
+
+        // computer might blow up. confirmed it will
+        while (allPoints.Count > 0)
+        {
+            VoxelPoint vp = allPoints[0];
+            HashSet<VoxelPoint> pointsHash = RecurseGroups(vp, new HashSet<VoxelPoint>());
+            List<VoxelPoint> points = new List<VoxelPoint>(pointsHash);
+            for (int i = 0; i < points.Count; i++)
+            {
+                allPoints.Remove(points[i]);
+            }
+
+            groupedPoints.Add(points);
+        }
+    }
+
+
+    private Vector3Int[] neighbours = new Vector3Int[]
+    {
+            new Vector3Int(1,0,0),
+            new Vector3Int(-1,0,0),
+            new Vector3Int(0,1,0),
+            new Vector3Int(0,-1,0),
+            new Vector3Int(0,0,1),
+            new Vector3Int(0,0,-1)
+    };
+
+    HashSet<VoxelPoint> RecurseGroups(VoxelPoint start, HashSet<VoxelPoint> groupPoints)
+    {
+        List<VoxelPoint> pointsAdded = new List<VoxelPoint>();
+        for (int i = 0; i < neighbours.Length; i++)
+        {
+            Vector3Int nPos = start.Position + neighbours[i];
+            if (HasVoxelPoint(nPos, out VoxelPoint? vp) && vp != null)
+            {
+                groupPoints.Add(vp.Value);
+                pointsAdded.Add(vp.Value);
+            }
+        }
+
+        if (groupPoints.Count == VoxelData.VoxelPoints.Length || pointsAdded.Count == 0)
+        {
+            return groupPoints;
+        }
+
+        for (int i = 0; i < pointsAdded.Count; i++)
+        {
+            RecurseGroups(pointsAdded[i], groupPoints);
+        }
+        return groupPoints;
+    }
+
+    bool HasVoxelPoint(Vector3Int point, out VoxelPoint? vp)
+    {
+        for (int i = 0; i < VoxelData.VoxelPoints.Length; i++)
+        {
+            if (VoxelData.VoxelPoints[i].Position == point)
+            {
+                vp = VoxelData.VoxelPoints[i];
+                return true;
+            }
+        }
+        vp = null;
+        return false;
     }
 }
