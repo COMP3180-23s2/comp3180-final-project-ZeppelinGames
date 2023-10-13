@@ -62,21 +62,12 @@ public class VoxelSelector : MonoBehaviour
                     vc.RefreshCollider();
                     vc.Renderer.BuildMesh(nVD);
 
-                    VoxelRenderer newVR = NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors);
-                    newVR.transform.SetPositionAndRotation(vc.transform.position, vc.transform.rotation);
+                    VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, vc.transform);
+
+                    // Might blow up
+                    vc.Renderer.GroupAndFracture();
                 }
             }
         }
-    }
-
-    VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols) 
-    {
-        VoxelRenderer rend = new GameObject().AddComponent<VoxelRenderer>();
-        rend.BuildMesh(new VoxelData(points, cols));
-
-        rend.gameObject.AddComponent<VoxelCollider>();
-        rend.gameObject.AddComponent<Rigidbody>();
-
-        return rend;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -136,7 +137,7 @@ public class VoxelRenderer : MonoBehaviour
             voxelShape = vs;
         }
 
-        GroupAndFracture();
+        //GroupAndFracture();
     }
 
     public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
@@ -173,6 +174,40 @@ public class VoxelRenderer : MonoBehaviour
         return true;
     }
 
+    public bool EditorBuildMesh(VoxelData vd = null, VoxelShape vs = null)
+    {
+        meshBuildStarted?.Invoke();
+
+        UpdateVoxelData(vd, vs);
+
+        if (VoxelData == null || VoxelShape == null)
+        {
+            Debug.LogWarning("Mesh build failed. Invalid voxel data or shape");
+            return false;
+        }
+
+        if (overrideDefaultMaterial || MeshRenderer.sharedMaterial == null)
+        {
+            // Update material.
+            MeshRenderer.sharedMaterial = Material;
+        }
+
+        VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
+
+        MeshFilter.mesh = new Mesh();
+
+        MeshFilter.mesh.Clear();
+
+        MeshFilter.mesh.SetVertices(v);
+        MeshFilter.mesh.SetTriangles(t, 0);
+        MeshFilter.mesh.SetNormals(n);
+        MeshFilter.mesh.SetColors(c);
+
+        // Update other linked components
+        meshBuildComplete?.Invoke();
+        return true;
+    }
+
     public void GroupAndFracture()
     {
         if (VoxelData.VoxelPoints.Length <= 0)
@@ -183,26 +218,28 @@ public class VoxelRenderer : MonoBehaviour
         // pick point
 
         // recusively check for neighbours
-        List<VoxelPoint> allPoints = new List<VoxelPoint>(VoxelData.VoxelPoints);
-        List<List<VoxelPoint>> groupedPoints = new List<List<VoxelPoint>>();
+        //StartCoroutine(PlzDontBlowUp());
 
-        // computer might blow up. confirmed it will
-        while (allPoints.Count > 0)
+        Vector3Int[] points = new Vector3Int[VoxelData.VoxelPoints.Length];
+        for (int i = 0; i < points.Length; i++)
         {
-            VoxelPoint vp = allPoints[0];
-            HashSet<VoxelPoint> pointsHash = RecurseGroups(vp, new HashSet<VoxelPoint>());
-            List<VoxelPoint> points = new List<VoxelPoint>(pointsHash);
-            for (int i = 0; i < points.Count; i++)
-            {
-                allPoints.Remove(points[i]);
-            }
-
-            groupedPoints.Add(points);
+            points[i] = VoxelData.VoxelPoints[i].Position;
         }
+        List<List<VoxelPoint>> grouped =  GroupConnected(VoxelData.VoxelPoints);
+        Debug.Log($"Groups: {grouped.Count}");
+
+        if(TryGetComponent(out VoxelCollider vc))
+        {
+            vc.enabled = false;
+        }
+        for (int i = 0; i < grouped.Count; i++)
+        {
+            VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, this.transform);
+        }
+        this.gameObject.SetActive(false);
     }
 
-
-    private Vector3Int[] neighbours = new Vector3Int[]
+    private Vector3Int[] NeighbourOffsets = new Vector3Int[]
     {
             new Vector3Int(1,0,0),
             new Vector3Int(-1,0,0),
@@ -212,42 +249,69 @@ public class VoxelRenderer : MonoBehaviour
             new Vector3Int(0,0,-1)
     };
 
-    HashSet<VoxelPoint> RecurseGroups(VoxelPoint start, HashSet<VoxelPoint> groupPoints)
+    public List<List<VoxelPoint>> GroupConnected(VoxelPoint[] vector3Ints)
     {
-        List<VoxelPoint> pointsAdded = new List<VoxelPoint>();
-        for (int i = 0; i < neighbours.Length; i++)
+        List<List<VoxelPoint>> groups = new List<List<VoxelPoint>>();
+        HashSet<VoxelPoint> visited = new HashSet<VoxelPoint>();
+
+        foreach (VoxelPoint vector in vector3Ints)
         {
-            Vector3Int nPos = start.Position + neighbours[i];
-            if (HasVoxelPoint(nPos, out VoxelPoint? vp) && vp != null)
+            if (!visited.Contains(vector))
             {
-                groupPoints.Add(vp.Value);
-                pointsAdded.Add(vp.Value);
+                List<VoxelPoint> group = new List<VoxelPoint>();
+                DepthFirstSearch(vector, vector3Ints, visited, group);
+                groups.Add(group);
             }
         }
 
-        if (groupPoints.Count == VoxelData.VoxelPoints.Length || pointsAdded.Count == 0)
-        {
-            return groupPoints;
-        }
-
-        for (int i = 0; i < pointsAdded.Count; i++)
-        {
-            RecurseGroups(pointsAdded[i], groupPoints);
-        }
-        return groupPoints;
+        return groups;
     }
 
-    bool HasVoxelPoint(Vector3Int point, out VoxelPoint? vp)
+    private void DepthFirstSearch(VoxelPoint vector, VoxelPoint[] vector3Ints, HashSet<VoxelPoint> visited, List<VoxelPoint> group)
+    {
+        visited.Add(vector);
+        group.Add(vector);
+
+        foreach (VoxelPoint neighbor in GetNeighbors(vector, vector3Ints))
+        {
+            if (!visited.Contains(neighbor))
+            {
+                DepthFirstSearch(neighbor, vector3Ints, visited, group);
+            }
+        }
+    }
+
+    private List<VoxelPoint> GetNeighbors(VoxelPoint vector, VoxelPoint[] vector3Ints)
+    {
+        List<VoxelPoint> neighbors = new List<VoxelPoint>();
+
+        foreach (Vector3Int offset in NeighbourOffsets)
+        {
+            Vector3Int neighbor = vector.Position + offset;
+            if (Array.Exists(vector3Ints, v => v.Position == neighbor))
+            {
+                //Get vp from pos
+                //neighbors.Add(neighbor);
+                VoxelPoint? vp = VoxelPointFromPosition(neighbor);
+                if (vp != null)
+                {
+                    neighbors.Add(vp.Value);
+                }
+            }
+        }
+
+        return neighbors;
+    }
+
+    private VoxelPoint? VoxelPointFromPosition(Vector3Int position)
     {
         for (int i = 0; i < VoxelData.VoxelPoints.Length; i++)
         {
-            if (VoxelData.VoxelPoints[i].Position == point)
+            if(VoxelData.VoxelPoints[i].Position == position)
             {
-                vp = VoxelData.VoxelPoints[i];
-                return true;
+                return VoxelData.VoxelPoints[i];
             }
         }
-        vp = null;
-        return false;
+        return null;
     }
 }

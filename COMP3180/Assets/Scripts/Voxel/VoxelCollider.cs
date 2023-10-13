@@ -81,4 +81,20 @@ public class VoxelCollider : MonoBehaviour
         colliders.Add(col);
         return col;
     }
+
+    private void OnEnable()
+    {
+        for (int i = 0; i < colliders.Count; i++)
+        {
+            colliders[i].enabled = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        for (int i = 0; i < colliders.Count; i++)
+        {
+            colliders[i].enabled = false;
+        }
+    }
 }
