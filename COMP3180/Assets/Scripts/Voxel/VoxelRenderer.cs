@@ -149,7 +149,7 @@ public class VoxelRenderer : MonoBehaviour
             return false;
         }
 
-        if (MeshRenderer.sharedMaterial == null)
+        if (overrideDefaultMaterial || MeshRenderer.sharedMaterial == null)
         {
             // Update material.
             MeshRenderer.sharedMaterial = Material;
@@ -159,12 +159,12 @@ public class VoxelRenderer : MonoBehaviour
 
         if (MeshFilter.sharedMesh == null) { MeshFilter.sharedMesh = new Mesh(); }
 
-        MeshFilter.sharedMesh.Clear();
+        MeshFilter.mesh.Clear();
             
-        MeshFilter.sharedMesh.SetVertices(v);
-        MeshFilter.sharedMesh.SetTriangles(t, 0);
-        MeshFilter.sharedMesh.SetNormals(n);
-        MeshFilter.sharedMesh.SetColors(c);
+        MeshFilter.mesh.SetVertices(v);
+        MeshFilter.mesh.SetTriangles(t, 0);
+        MeshFilter.mesh.SetNormals(n);
+        MeshFilter.mesh.SetColors(c);
 
         // Update other linked components
         meshBuildComplete?.Invoke();
