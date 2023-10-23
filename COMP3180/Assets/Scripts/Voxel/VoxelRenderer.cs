@@ -54,10 +54,10 @@ public class VoxelRenderer : MonoBehaviour
     private VoxelData voxelData;
     private VoxelShape voxelShape;
 
-    private Mesh voxelMesh;
 
     // Mesh Components
-    #region Mesh
+    #region MESH
+    private Mesh voxelMesh;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
 
@@ -158,8 +158,6 @@ public class VoxelRenderer : MonoBehaviour
         {
             voxelShape = vs;
         }
-
-        //GroupAndFracture();
     }
 
     public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)
@@ -182,17 +180,18 @@ public class VoxelRenderer : MonoBehaviour
 
         VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
 
-        Mesh m = new Mesh();
-        m.name = "VoxelMesh";
+        if (voxelMesh == null)
+        {
+            voxelMesh = new Mesh();
+            voxelMesh.name = "VoxelMesh";
+            MeshFilter.mesh = voxelMesh;
+        }
 
-        //MeshFilter.mesh.Clear();
+        voxelMesh.SetVertices(v);
+        voxelMesh.SetTriangles(t, 0);
+        voxelMesh.SetNormals(n);
+        voxelMesh.SetColors(c);
 
-        m.SetVertices(v);
-        m.SetTriangles(t, 0);
-        m.SetNormals(n);
-        m.SetColors(c);
-
-        MeshFilter.sharedMesh = m;
 
         // Update other linked components
         meshBuildComplete?.Invoke();
