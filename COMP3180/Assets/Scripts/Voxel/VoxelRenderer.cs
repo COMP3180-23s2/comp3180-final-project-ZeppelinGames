@@ -54,7 +54,6 @@ public class VoxelRenderer : MonoBehaviour
     private VoxelData voxelData;
     private VoxelShape voxelShape;
 
-
     // Mesh Components
     #region MESH
     private Mesh voxelMesh;

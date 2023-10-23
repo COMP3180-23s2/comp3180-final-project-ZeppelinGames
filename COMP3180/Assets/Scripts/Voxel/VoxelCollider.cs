@@ -40,7 +40,6 @@ public class VoxelCollider : MonoBehaviour
 
         if (voxRenderer.VoxelData == null)
         {
-            Debug.Log($"NO VOXEL DATA ON {this.gameObject.name}");
             return;
         }
 
@@ -56,7 +55,7 @@ public class VoxelCollider : MonoBehaviour
         {
             BoxCollider c = GetCollider();
             c.center = points[i].LocalPosition;
-            
+
             c.size = Vector3.one * VoxelBuilder.VoxelSize;
 
             pointsLinks.Add(new int[] { i });
@@ -72,6 +71,12 @@ public class VoxelCollider : MonoBehaviour
             DestroyImmediate(cols[i]);
         }
     }
+
+    private void OnDestroy()
+    {
+        ResetCollidersEditor();
+    }
+
 #endif
 
     BoxCollider GetCollider()
@@ -84,17 +89,25 @@ public class VoxelCollider : MonoBehaviour
 
     private void OnEnable()
     {
+#if UNITY_EDITOR
+        RefreshCollider();
+#else
         for (int i = 0; i < colliders.Count; i++)
         {
             colliders[i].enabled = true;
         }
+#endif
     }
 
     private void OnDisable()
     {
+#if UNITY_EDITOR
+        ResetCollidersEditor();
+#else
         for (int i = 0; i < colliders.Count; i++)
         {
             colliders[i].enabled = false;
         }
+#endif
     }
 }

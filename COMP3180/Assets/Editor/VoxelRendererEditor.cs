@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using System;
 
 [CustomEditor(typeof(VoxelRenderer))]
 public class VoxelRendererEditor : Editor
@@ -14,12 +15,12 @@ public class VoxelRendererEditor : Editor
     SerializedProperty overrideDefaultMaterialBool;
     SerializedProperty material;
 
-    bool editModeActive;
+    private static bool editModeActive;
+    private static VoxelDataEditor voxelDataEditor;
 
     private static string defaultFileContents = @"# New Voxel Mesh; # Points; p0,0,0,0; c255,255,255,255;";
 
-    private HashSet<Vector3Int> editingPoints = new HashSet<Vector3Int>();
-    private VoxelRenderer currentTarget;
+    private static VoxelRenderer currentTarget;
 
     [MenuItem("GameObject/3D Object/Voxel", priority = 6)]
     public static void CreateVoxel()
@@ -41,10 +42,19 @@ public class VoxelRendererEditor : Editor
         material = serializedObject.FindProperty("mat");
     }
 
+    private void OnDisable()
+    {
+        if (voxelDataEditor != null)
+        {
+            DestroyImmediate(voxelDataEditor.gameObject);
+        }
+        voxelDataEditor = null;
+    }
+
     public override void OnInspectorGUI()
     {
         VoxelRenderer renderer = (VoxelRenderer)target;
-        if(renderer == null)
+        if (renderer == null)
         {
             return;
         }
@@ -73,6 +83,7 @@ public class VoxelRendererEditor : Editor
         }
 
         bool edit = false;
+
         if (editModeActive)
         {
             GUILayout.BeginHorizontal();
@@ -80,7 +91,9 @@ public class VoxelRendererEditor : Editor
             bool discard = GUILayout.Button("Discard Changes");
             bool save = GUILayout.Button("Save Voxel");
 
-            if(save || discard)
+            GUILayout.EndHorizontal();
+
+            if (save || discard)
             {
                 edit = true;
             }
@@ -96,12 +109,12 @@ public class VoxelRendererEditor : Editor
                 writer.Close();
             }
 
-            GUILayout.EndHorizontal();
         }
         else
         {
-            edit = GUILayout.Button("Edit Voxel");
+            edit = GUILayout.Button(renderer.VoxelDataFile == null ? "Create Voxel Data" : "Edit Voxel");
         }
+
         bool refresh = GUILayout.Button("Refresh Voxel");
 
         bool updated = serializedObject.ApplyModifiedProperties();
@@ -115,26 +128,48 @@ public class VoxelRendererEditor : Editor
         {
             // toggle edit mode
             editModeActive = !editModeActive;
+
             if (editModeActive)
             {
-                // start editing
-                EditMode();
-
+                // Create new data file if one doesnt exist
                 if (renderer.VoxelDataFile == null)
                 {
                     string savePath = EditorUtility.SaveFilePanel("New Voxel File", Application.dataPath, "NewVoxel", "txt");
                     if (savePath.Length > 0)
                     {
                         TextAsset newTextAsset = CreateNewVoxelDataFile(savePath);
-
                         renderer.VoxelDataFile = newTextAsset;
                         UpdateVoxel();
                     }
                     else
                     {
+                        Debug.LogWarning("Save data file cancelled");
                         editModeActive = false;
                         return;
                     }
+                }
+
+                // Update data
+                //UpdateVoxel();
+
+                // start editing
+                if (voxelDataEditor == null)
+                {
+                    GameObject editorGO = EditorUtility.CreateGameObjectWithHideFlags("VoxelEditor", HideFlags.None);
+                    voxelDataEditor = editorGO.AddComponent<VoxelDataEditor>();
+                    voxelDataEditor.SetVoxel(renderer);
+                }
+                else
+                {
+                    voxelDataEditor.SetVoxel(renderer);
+                }
+            }
+            else
+            {
+                if (voxelDataEditor != null)
+                {
+                    DestroyImmediate(voxelDataEditor.gameObject);
+                    voxelDataEditor = null;
                 }
             }
         }
@@ -159,11 +194,6 @@ public class VoxelRendererEditor : Editor
         return newTextAsset;
     }
 
-    void EditMode()
-    {
-
-    }
-
     void UpdateVoxel()
     {
         VoxelRenderer renderer = (VoxelRenderer)target;
@@ -174,7 +204,6 @@ public class VoxelRendererEditor : Editor
 
             if (renderer.TryGetComponent(out VoxelCollider vc))
             {
-                Debug.Log("Updating collider");
                 vc.ResetCollidersEditor();
                 vc.RefreshCollider();
             }
