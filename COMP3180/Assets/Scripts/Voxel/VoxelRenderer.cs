@@ -16,6 +16,18 @@ public class VoxelRenderer : MonoBehaviour
 
     [Header("Data")]
     [SerializeField] private TextAsset voxelDataFile;
+    public TextAsset VoxelDataFile
+    {
+        get
+        {
+            return voxelDataFile;
+        }
+        set
+        {
+            voxelDataFile = value;
+        }
+    }
+
     [SerializeField] private bool overrideShape = false;
     [SerializeField] private TextAsset voxelShapeFile;
 
@@ -41,6 +53,8 @@ public class VoxelRenderer : MonoBehaviour
 
     private VoxelData voxelData;
     private VoxelShape voxelShape;
+
+    private Mesh voxelMesh;
 
     // Mesh Components
     #region Mesh
@@ -99,6 +113,14 @@ public class VoxelRenderer : MonoBehaviour
         }
     }
     #endregion
+
+
+    private void OnEnable()
+    {
+        voxelMesh = new Mesh();
+        voxelMesh.name = "Voxel";
+        MeshFilter.sharedMesh = voxelMesh;
+    }
 
     private void Start()
     {
@@ -160,14 +182,17 @@ public class VoxelRenderer : MonoBehaviour
 
         VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
 
-        if (MeshFilter.sharedMesh == null) { MeshFilter.sharedMesh = new Mesh(); }
+        Mesh m = new Mesh();
+        m.name = "VoxelMesh";
 
-        MeshFilter.mesh.Clear();
+        //MeshFilter.mesh.Clear();
 
-        MeshFilter.mesh.SetVertices(v);
-        MeshFilter.mesh.SetTriangles(t, 0);
-        MeshFilter.mesh.SetNormals(n);
-        MeshFilter.mesh.SetColors(c);
+        m.SetVertices(v);
+        m.SetTriangles(t, 0);
+        m.SetNormals(n);
+        m.SetColors(c);
+
+        MeshFilter.sharedMesh = m;
 
         // Update other linked components
         meshBuildComplete?.Invoke();
@@ -194,14 +219,12 @@ public class VoxelRenderer : MonoBehaviour
 
         VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
 
-        MeshFilter.mesh = new Mesh();
+        voxelMesh.Clear();
 
-        MeshFilter.mesh.Clear();
-
-        MeshFilter.mesh.SetVertices(v);
-        MeshFilter.mesh.SetTriangles(t, 0);
-        MeshFilter.mesh.SetNormals(n);
-        MeshFilter.mesh.SetColors(c);
+        voxelMesh.SetVertices(v);
+        voxelMesh.SetTriangles(t, 0);
+        voxelMesh.SetNormals(n);
+        voxelMesh.SetColors(c);
 
         // Update other linked components
         meshBuildComplete?.Invoke();
@@ -225,10 +248,10 @@ public class VoxelRenderer : MonoBehaviour
         {
             points[i] = VoxelData.VoxelPoints[i].Position;
         }
-        List<List<VoxelPoint>> grouped =  GroupConnected(VoxelData.VoxelPoints);
+        List<List<VoxelPoint>> grouped = GroupConnected(VoxelData.VoxelPoints);
         Debug.Log($"Groups: {grouped.Count}");
 
-        if(TryGetComponent(out VoxelCollider vc))
+        if (TryGetComponent(out VoxelCollider vc))
         {
             vc.enabled = false;
         }
@@ -307,7 +330,7 @@ public class VoxelRenderer : MonoBehaviour
     {
         for (int i = 0; i < VoxelData.VoxelPoints.Length; i++)
         {
-            if(VoxelData.VoxelPoints[i].Position == position)
+            if (VoxelData.VoxelPoints[i].Position == position)
             {
                 return VoxelData.VoxelPoints[i];
             }
