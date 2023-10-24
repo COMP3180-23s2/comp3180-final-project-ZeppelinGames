@@ -74,9 +74,12 @@ public class VoxelCollider : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (EditorApplication.isPlaying)
+        {
+            return;
+        }
         ResetCollidersEditor();
     }
-
 #endif
 
     BoxCollider GetCollider()
@@ -102,6 +105,10 @@ public class VoxelCollider : MonoBehaviour
     private void OnDisable()
     {
 #if UNITY_EDITOR
+        if (EditorApplication.isPlaying)
+        {
+            return;
+        }
         ResetCollidersEditor();
 #else
         for (int i = 0; i < colliders.Count; i++)

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-[ExecuteInEditMode]
+/*[ExecuteInEditMode]*/
 [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
 public class VoxelRenderer : MonoBehaviour
 {
@@ -113,20 +113,33 @@ public class VoxelRenderer : MonoBehaviour
     }
     #endregion
 
-
-    private void OnEnable()
+    private void OnValidate()
     {
-        voxelMesh = new Mesh();
-        voxelMesh.name = "Voxel";
-        MeshFilter.sharedMesh = voxelMesh;
+        if (voxelDataFile != null)
+        {
+            InitMesh();
+            LoadMesh();
+            BuildMesh();
+        }
     }
 
     private void Start()
     {
         if (voxelDataFile != null)
         {
+            InitMesh();
             LoadMesh();
             BuildMesh();
+        }
+    }
+
+    public void InitMesh()
+    {
+        if (voxelMesh == null)
+        {
+            voxelMesh = new Mesh();
+            voxelMesh.name = "Voxel";
+            MeshFilter.sharedMesh = voxelMesh;
         }
     }
 
@@ -134,16 +147,14 @@ public class VoxelRenderer : MonoBehaviour
     {
         if (voxelDataFile == null)
         {
-            Debug.LogWarning("Missing Voxel Data file");
+            Debug.LogWarning("Missing voxel data file");
             return false;
         }
 
         // Re-read and load data from file
-        voxelData = new VoxelData(voxelDataFile);
-        if (voxelShapeFile != null)
-        {
-            voxelShape = new VoxelShape(voxelShapeFile);
-        }
+        voxelData = new VoxelData(VoxelDataFile);
+        voxelShape = voxelShapeFile != null ? new VoxelShape(voxelShapeFile) : VoxelShape;
+
         return true;
     }
 
@@ -167,8 +178,10 @@ public class VoxelRenderer : MonoBehaviour
 
         if (VoxelData == null || VoxelShape == null)
         {
-            Debug.LogWarning("Mesh build failed. Invalid voxel data or shape");
-            return false;
+            if(!LoadMesh())
+            {
+                return false;
+            }
         }
 
         if (overrideDefaultMaterial || MeshRenderer.sharedMaterial == null)
@@ -186,6 +199,7 @@ public class VoxelRenderer : MonoBehaviour
             MeshFilter.mesh = voxelMesh;
         }
 
+        voxelMesh.Clear();
         voxelMesh.SetVertices(v);
         voxelMesh.SetTriangles(t, 0);
         voxelMesh.SetNormals(n);

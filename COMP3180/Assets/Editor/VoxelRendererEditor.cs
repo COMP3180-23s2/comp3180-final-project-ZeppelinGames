@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using System;
+using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(VoxelRenderer))]
 public class VoxelRendererEditor : Editor
@@ -40,6 +41,8 @@ public class VoxelRendererEditor : Editor
 
         overrideDefaultMaterialBool = serializedObject.FindProperty("overrideDefaultMaterial");
         material = serializedObject.FindProperty("mat");
+        
+        UpdateVoxel();
     }
 
     private void OnDisable()
@@ -61,9 +64,8 @@ public class VoxelRendererEditor : Editor
 
         if (renderer != currentTarget)
         {
-            // Target changed. Save if editing
-
-            // Update current
+            // prompt to save/discard 
+            editModeActive = false;
             currentTarget = renderer;
         }
 
@@ -149,13 +151,11 @@ public class VoxelRendererEditor : Editor
                     }
                 }
 
-                // Update data
-                //UpdateVoxel();
 
-                // start editing
                 if (voxelDataEditor == null)
                 {
-                    GameObject editorGO = EditorUtility.CreateGameObjectWithHideFlags("VoxelEditor", HideFlags.None);
+                    GameObject editorGO = new GameObject("EditorGO");
+                    Debug.Log($"Created {editorGO.name}");
                     voxelDataEditor = editorGO.AddComponent<VoxelDataEditor>();
                     voxelDataEditor.SetVoxel(renderer);
                 }
@@ -168,6 +168,7 @@ public class VoxelRendererEditor : Editor
             {
                 if (voxelDataEditor != null)
                 {
+                    Debug.Log("Destroyed");
                     DestroyImmediate(voxelDataEditor.gameObject);
                     voxelDataEditor = null;
                 }
