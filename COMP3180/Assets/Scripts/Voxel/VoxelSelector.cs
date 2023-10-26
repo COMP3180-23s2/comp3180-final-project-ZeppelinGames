@@ -59,7 +59,7 @@ public class VoxelSelector : MonoBehaviour
 
                     VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
                     vc.Renderer.UpdateVoxelData(nVD);
-                    vc.RefreshCollider();
+                    vc.BuildCollider();
                     vc.Renderer.BuildMesh(nVD);
 
                     VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, vc.transform);

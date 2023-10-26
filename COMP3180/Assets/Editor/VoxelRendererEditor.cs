@@ -41,7 +41,7 @@ public class VoxelRendererEditor : Editor
 
         overrideDefaultMaterialBool = serializedObject.FindProperty("overrideDefaultMaterial");
         material = serializedObject.FindProperty("mat");
-        
+
         UpdateVoxel();
     }
 
@@ -100,21 +100,85 @@ public class VoxelRendererEditor : Editor
                 edit = true;
             }
 
+            if (discard)
+            {
+                UpdateVoxel();
+            }
+
             if (save)
             {
                 string dataPath = $"./{AssetDatabase.GetAssetPath(renderer.VoxelDataFile)}";
 
-                string saveData = "";
-
                 StreamWriter writer = new StreamWriter(dataPath);
-                writer.WriteLine("new contents");
-                writer.Close();
-            }
 
+                VoxelData vd = renderer.VoxelData;
+                Debug.Log($"Writing {vd.VoxelPoints.Length} points to file");
+
+                // write verts
+                writer.Write('p');
+                for (int i = 0; i < vd.VoxelPoints.Length; i++)
+                {
+                    string data = $"{vd.VoxelPoints[i].Position.x},{vd.VoxelPoints[i].Position.y},{vd.VoxelPoints[i].Position.z},{vd.VoxelPoints[i].ColorIndex};";
+                    writer.Write(data);
+                }
+
+                // write colors
+                writer.Write('c');
+                for (int i = 0; i < vd.Colors.Length; i++)
+                {
+                    string data = $"{(int)(vd.Colors[i].r * 255f)},{(int)(vd.Colors[i].g * 255f)},{(int)(vd.Colors[i].b * 255f)}, {(int)(vd.Colors[i].a * 255f)};";
+                    writer.Write(data);
+                }
+
+                writer.Close();
+
+                //AssetDatabase.ImportAsset(dataPath);
+                AssetDatabase.Refresh();
+                renderer.BuildMesh();
+            }
         }
         else
         {
-            edit = GUILayout.Button(renderer.VoxelDataFile == null ? "Create Voxel Data" : "Edit Voxel");
+            if (renderer.VoxelDataFile == null)
+            {
+                edit = GUILayout.Button("Create Voxel Data");
+
+                if (edit && !editModeActive)
+                {
+                    if (renderer.VoxelDataFile == null)
+                    {
+                        string savePath = EditorUtility.SaveFilePanel("New Voxel File", Application.dataPath, "NewVoxel", "txt");
+                        if (savePath.Length > 0)
+                        {
+                            TextAsset newTextAsset = CreateNewVoxelDataFile(savePath);
+                            renderer.VoxelDataFile = newTextAsset;
+                            UpdateVoxel();
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Save data file cancelled");
+                            editModeActive = false;
+                            return;
+                        }
+                    }
+                }
+            }
+            else if (renderer.VoxelData.VoxelPoints.Length == 0)
+            {
+                edit = GUILayout.Button("Create Voxel Data");
+
+                if (edit && !editModeActive)
+                {
+                    string dataPath = $"./{AssetDatabase.GetAssetPath(renderer.VoxelDataFile)}";
+                    StreamWriter writer = new StreamWriter(dataPath, false);
+                    writer.WriteLine(defaultFileContents);
+                    writer.Close();
+                }
+            }
+            else
+            {
+                edit = GUILayout.Button("Edit Voxel");
+            }
         }
 
         bool refresh = GUILayout.Button("Refresh Voxel");
@@ -134,24 +198,6 @@ public class VoxelRendererEditor : Editor
             if (editModeActive)
             {
                 // Create new data file if one doesnt exist
-                if (renderer.VoxelDataFile == null)
-                {
-                    string savePath = EditorUtility.SaveFilePanel("New Voxel File", Application.dataPath, "NewVoxel", "txt");
-                    if (savePath.Length > 0)
-                    {
-                        TextAsset newTextAsset = CreateNewVoxelDataFile(savePath);
-                        renderer.VoxelDataFile = newTextAsset;
-                        UpdateVoxel();
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Save data file cancelled");
-                        editModeActive = false;
-                        return;
-                    }
-                }
-
-
                 if (voxelDataEditor == null)
                 {
                     GameObject editorGO = new GameObject("EditorGO");
@@ -161,6 +207,7 @@ public class VoxelRendererEditor : Editor
                 }
                 else
                 {
+                    UpdateVoxel();
                     voxelDataEditor.SetVoxel(renderer);
                 }
             }
@@ -206,7 +253,7 @@ public class VoxelRendererEditor : Editor
             if (renderer.TryGetComponent(out VoxelCollider vc))
             {
                 vc.ResetCollidersEditor();
-                vc.RefreshCollider();
+                vc.BuildCollider();
             }
         }
     }

@@ -178,7 +178,7 @@ public class VoxelRenderer : MonoBehaviour
 
         if (VoxelData == null || VoxelShape == null)
         {
-            if(!LoadMesh())
+            if (!LoadMesh())
             {
                 return false;
             }
@@ -348,5 +348,16 @@ public class VoxelRenderer : MonoBehaviour
             }
         }
         return null;
+    }
+
+    public Vector3Int WorldToLocalVoxel(Vector3 world)
+    {
+        // t.TransformVector((Vector3)this.Position * VoxelBuilder.VoxelSize);
+        Vector3 inv = transform.InverseTransformVector(world) / VoxelBuilder.VoxelSize;
+        return new Vector3Int(
+            Mathf.RoundToInt(inv.x),
+            Mathf.RoundToInt(inv.y),
+            Mathf.RoundToInt(inv.z)
+            );
     }
 }

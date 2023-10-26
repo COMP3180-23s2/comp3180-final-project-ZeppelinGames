@@ -23,24 +23,19 @@ public class VoxelCollider : MonoBehaviour
 
         voxRenderer = GetComponent<VoxelRenderer>();
         voxRenderer.meshBuildComplete += MeshBuildEnd;
-        RefreshCollider();
+        BuildCollider();
     }
 
     void MeshBuildEnd()
     {
-        RefreshCollider();
+        BuildCollider();
     }
 
-    public void RefreshCollider()
+    public void BuildCollider()
     {
         if (voxRenderer == null)
         {
             voxRenderer = GetComponent<VoxelRenderer>();
-        }
-
-        if (voxRenderer.VoxelData == null)
-        {
-            return;
         }
 
         for (int i = 0; i < colliders.Count; i++)
@@ -49,6 +44,17 @@ public class VoxelCollider : MonoBehaviour
         }
         colliders.Clear();
         pointsLinks.Clear();
+
+        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
+        for (int i = 0; i < cols.Length; i++)
+        {
+            DestroyImmediate(cols[i]);
+        }
+
+        if (voxRenderer.VoxelData == null)
+        {
+            return;
+        }
 
         VoxelPoint[] points = voxRenderer.VoxelData.VoxelPoints;
         for (int i = 0; i < points.Length; i++)
@@ -65,6 +71,12 @@ public class VoxelCollider : MonoBehaviour
 #if UNITY_EDITOR
     public void ResetCollidersEditor()
     {
+        for (int i = 0; i < colliders.Count; i++)
+        {
+            DestroyImmediate(colliders[i]);
+        }
+        colliders.Clear();
+
         BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
         for (int i = 0; i < cols.Length; i++)
         {
@@ -88,33 +100,5 @@ public class VoxelCollider : MonoBehaviour
         col.hideFlags = HideFlags.HideInInspector;
         colliders.Add(col);
         return col;
-    }
-
-    private void OnEnable()
-    {
-#if UNITY_EDITOR
-        RefreshCollider();
-#else
-        for (int i = 0; i < colliders.Count; i++)
-        {
-            colliders[i].enabled = true;
-        }
-#endif
-    }
-
-    private void OnDisable()
-    {
-#if UNITY_EDITOR
-        if (EditorApplication.isPlaying)
-        {
-            return;
-        }
-        ResetCollidersEditor();
-#else
-        for (int i = 0; i < colliders.Count; i++)
-        {
-            colliders[i].enabled = false;
-        }
-#endif
     }
 }
