@@ -69,6 +69,11 @@ public class VoxelDataEditor : MonoBehaviour
             view.FrameSelected();
         }
 
+        if(voxel == null || voxel.VoxelData == null)
+        {
+            return;
+        }
+
         int id = GUIUtility.GetControlID(FocusType.Passive);
         HandleUtility.AddDefaultControl(id);
 
@@ -82,6 +87,7 @@ public class VoxelDataEditor : MonoBehaviour
         GUILayout.BeginArea(paletteRect);
         EditorGUI.DrawRect(new Rect(24 * currColorIndex, 0, 28, 28), Color.black);
         GUILayout.BeginHorizontal();
+
         for (int i = 0; i < voxel.VoxelData.Colors.Length; i++)
         {
             Color newCol = EditorGUILayout.ColorField(
