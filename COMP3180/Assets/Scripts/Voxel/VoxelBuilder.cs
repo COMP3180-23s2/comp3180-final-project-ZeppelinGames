@@ -157,7 +157,7 @@ public static class VoxelBuilder
         cOut = cols.ToArray();
     }
 
-    public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, Transform transform = null)
+    public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null)
     {
         VoxelRenderer rend = new GameObject().AddComponent<VoxelRenderer>();
 
@@ -169,7 +169,7 @@ public static class VoxelBuilder
         rend.BuildMesh(new VoxelData(points, cols));
 
         rend.gameObject.AddComponent<VoxelCollider>();
-        rend.gameObject.AddComponent<Rigidbody>();
+        rig = rend.gameObject.AddComponent<Rigidbody>();
 
         return rend;
     }

@@ -269,7 +269,7 @@ public class VoxelRenderer : MonoBehaviour
         }
         for (int i = 0; i < grouped.Count; i++)
         {
-            VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, this.transform);
+            VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, out Rigidbody _, this.transform);
         }
         this.gameObject.SetActive(false);
     }

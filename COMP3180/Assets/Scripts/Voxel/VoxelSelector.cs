@@ -13,6 +13,8 @@ public class VoxelSelector : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private BreakType breakType;
+    [SerializeField] private float breakForce = 5f;
+    [SerializeField] private float breakRadius = 3f;
 
     // Update is called once per frame
     void Update()
@@ -42,7 +44,7 @@ public class VoxelSelector : MonoBehaviour
 
                     for (int i = 0; i < points.Length; i++)
                     {
-                        if (Vector3.Distance(vc.transform.InverseTransformPoint(hitCentre), points[i].LocalPosition) < VoxelBuilder.HVoxelSize)
+                        if (Vector3.Distance(vc.transform.InverseTransformPoint(hitCentre), points[i].LocalPosition) < breakRadius)
                         {
                             fractureChunk.Add(points[i]);
                         }
@@ -52,17 +54,41 @@ public class VoxelSelector : MonoBehaviour
                         }
                     }
 
-                    if (cutChunk.Count == 0 || fractureChunk.Count == 0)
+                    /*if (cutChunk.Count == 0 || fractureChunk.Count == 0)
                     {
                         return;
+                    }*/
+
+                    if (cutChunk.Count > 0)
+                    {
+                        VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+                        vc.Renderer.UpdateVoxelData(nVD);
+                        vc.BuildCollider();
+                        vc.Renderer.BuildMesh(nVD);
+
                     }
 
-                    VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
-                    vc.Renderer.UpdateVoxelData(nVD);
-                    vc.BuildCollider();
-                    vc.Renderer.BuildMesh(nVD);
+                    if (vc.TryGetComponent(out Rigidbody rr))
+                    {
+                        rr.AddForce(ray.direction * breakForce);
+                    }
 
-                    VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, vc.transform);
+                    if (fractureChunk.Count > 0)
+                    {
+                        Rigidbody rig;
+                        if (fractureChunk.Count != points.Length)
+                        {
+                            VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform);
+                        }
+                        else
+                        {
+                            vc.TryGetComponent(out rig);
+                        }
+                        if (rig != null)
+                        {
+                            rig.AddForce(ray.direction * breakForce);
+                        }
+                    }
 
                     // Might blow up
                     vc.Renderer.GroupAndFracture();

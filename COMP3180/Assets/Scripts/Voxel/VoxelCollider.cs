@@ -62,7 +62,7 @@ public class VoxelCollider : MonoBehaviour
             BoxCollider c = GetCollider();
             c.center = points[i].LocalPosition;
 
-            c.size = Vector3.one * VoxelBuilder.VoxelSize;
+            c.size = new Vector3(0.9f, 0.9f, 0.9f) * VoxelBuilder.VoxelSize;
 
             pointsLinks.Add(new int[] { i });
         }
