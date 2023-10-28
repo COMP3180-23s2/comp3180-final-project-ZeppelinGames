@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public static class VoxParser
-{ 
+{
     enum LoadState
     {
         NONE,
@@ -134,7 +134,19 @@ public static class VoxParser
                         switch (state)
                         {
                             case LoadState.POINT:
-                                voxelPoints.Add(ParseVoxelPoint(data));
+                                VoxelPoint vp = ParseVoxelPoint(data);
+                                bool add = true;
+                                for (int j = 0; j < voxelPoints.Count; j++)
+                                {
+                                    if (voxelPoints[j].Position == vp.Position)
+                                    {
+                                        add = false;
+                                    }
+                                }
+                                if (add)
+                                {
+                                    voxelPoints.Add(vp);
+                                }
                                 break;
 
                             case LoadState.VERTEX:
@@ -183,7 +195,8 @@ public static class VoxParser
                         break;
                 }
             }
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             Debug.LogError($"Failed voxel parsing at Ln: {readLine}, Ch:{lineChar} {readChar}");
             Debug.Log($"Data Index: {dataIndex}\nRaw Data: {rawData}");
