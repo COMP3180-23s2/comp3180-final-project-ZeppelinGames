@@ -60,7 +60,6 @@ public class VoxelDataEditor : MonoBehaviour
     Vector3 voxelAddPos;
     Vector3 voxelRemovePos;
 
-
     void OnSceneGUI(SceneView view)
     {
         if (!framed)
@@ -69,7 +68,7 @@ public class VoxelDataEditor : MonoBehaviour
             view.FrameSelected();
         }
 
-        if(voxel == null || voxel.VoxelData == null)
+        if (voxel == null || voxel.VoxelData == null)
         {
             return;
         }
@@ -132,32 +131,11 @@ public class VoxelDataEditor : MonoBehaviour
             }
         }
 
-        switch (Event.current.GetTypeForControl(id))
+        Event e = Event.current;
+        switch (e.GetTypeForControl(id))
         {
             case EventType.MouseMove:
-                Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-                RaycastHit? hit = HandleUtility.RaySnap(ray) as RaycastHit?;
-
-                drawHelper = hit != null && hit.Value.transform == voxel.transform;
-
-                if (drawHelper)
-                {
-                    voxelAddPos = hit.Value.point;
-                    voxelAddPos += (hit.Value.normal * VoxelBuilder.HVoxelSize);
-                    voxelAddPos = new Vector3(
-                        Mathf.Round(voxelAddPos.x / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize,
-                        Mathf.Round(voxelAddPos.y / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize,
-                        Mathf.Round(voxelAddPos.z / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize
-                        );
-
-                    voxelRemovePos = hit.Value.point;
-                    voxelRemovePos -= (hit.Value.normal * VoxelBuilder.HVoxelSize);
-                    voxelRemovePos = new Vector3(
-                         Mathf.Round(voxelRemovePos.x / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize,
-                         Mathf.Round(voxelRemovePos.y / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize,
-                         Mathf.Round(voxelRemovePos.z / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize
-                     );
-                }
+                UpdateMarker();
                 break;
 
             case EventType.MouseDown:
@@ -169,53 +147,108 @@ public class VoxelDataEditor : MonoBehaviour
                 // LMB
                 if (Event.current.button == 0)
                 {
-                    // Add voxel
-                    VoxelPoint[] newVoxels = new VoxelPoint[voxel.VoxelData.VoxelPoints.Length + 1];
-                    voxel.VoxelData.VoxelPoints.CopyTo(newVoxels, 0);
-                    newVoxels[newVoxels.Length - 1] = new VoxelPoint(voxel.WorldToLocalVoxel(voxelAddPos), currColorIndex);
-
-                    voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
-                    if (voxelCol != null)
-                    {
-                        voxelCol.BuildCollider();
-                    }
-
-                    Event.current.Use();
+                    Vector3Int newPoint = voxel.WorldToLocalVoxel(voxelAddPos);
+                    AddVoxel(newPoint);
+                    e.Use();
                 }
 
                 // RMB
                 if (Event.current.button == 1)
                 {
-                    // Remove voxel
-                    // find closest voxel. remove it
+                    Vector3Int newPoint = voxel.WorldToLocalVoxel(voxelRemovePos);
+                    RemoveVoxel(newPoint);
+                    e.Use();
+                }
+                break;
 
-                    // get closest point to hit
-                    Vector3Int localPos = voxel.WorldToLocalVoxel(voxelRemovePos);
-                    int removeIndex = GetClosestVoxelIndexTo(localPos);
-                    if (removeIndex < 0)
-                    {
-                        break;
-                    }
-
-                    VoxelPoint[] newVoxels = new VoxelPoint[voxel.VoxelData.VoxelPoints.Length - 1];
-                    for (int i = 0, j = 0; i < voxel.VoxelData.VoxelPoints.Length; i++)
-                    {
-                        if (i != removeIndex)
-                        {
-                            newVoxels[j] = voxel.VoxelData.VoxelPoints[i];
-                            j++;
-                        }
-                    }
-                    voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
-                    if (voxelCol != null)
-                    {
-                        voxelCol.BuildCollider();
-                    }
-
-                    Event.current.Use();
+            case EventType.MouseDrag:
+                UpdateMarker();
+                if (Event.current.button == 0)
+                {
+                    Vector3Int newPoint = voxel.WorldToLocalVoxel(voxelAddPos);
+                    AddVoxel(newPoint);
+                    e.Use();
                 }
 
+                // RMB
+                if (Event.current.button == 1)
+                {
+                    Vector3Int newPoint = voxel.WorldToLocalVoxel(voxelRemovePos);
+                    RemoveVoxel(newPoint);
+                    e.Use();
+                }
                 break;
+        }
+    }
+
+    void AddVoxel(Vector3Int newPoint)
+    {
+        if(HasPoint(newPoint))
+        {
+            return;
+        }
+
+        VoxelPoint[] newVoxels = new VoxelPoint[voxel.VoxelData.VoxelPoints.Length + 1];
+        voxel.VoxelData.VoxelPoints.CopyTo(newVoxels, 0);
+        newVoxels[newVoxels.Length - 1] = new VoxelPoint(newPoint, currColorIndex);
+
+        voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
+        if (voxelCol != null)
+        {
+            voxelCol.BuildCollider();
+        }
+    }
+
+    bool HasPoint(Vector3Int p)
+    {
+        for (int i = 0; i < voxel.VoxelData.VoxelPoints.Length; i++)
+        {
+            if(voxel.VoxelData.VoxelPoints[i].Position == p)
+            {
+                return true; ;
+            }
+        }
+        return false;
+    }
+
+    void UpdateMarker()
+    {
+        Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+        RaycastHit? hit = HandleUtility.RaySnap(ray) as RaycastHit?;
+
+        drawHelper = hit != null && hit.Value.transform == voxel.transform;
+
+        if (drawHelper)
+        {
+            voxelAddPos = hit.Value.point;
+            voxelAddPos += (hit.Value.normal * VoxelBuilder.HVoxelSize);
+
+            voxelRemovePos = hit.Value.point;
+            voxelRemovePos -= (hit.Value.normal * VoxelBuilder.HVoxelSize);
+        }
+    }
+
+    void RemoveVoxel(Vector3Int newPoint)
+    {
+        int removeIndex = GetClosestVoxelIndexTo(newPoint);
+        if (removeIndex < 0)
+        {
+            return;
+        }
+
+        VoxelPoint[] newVoxels = new VoxelPoint[voxel.VoxelData.VoxelPoints.Length - 1];
+        for (int i = 0, j = 0; i < voxel.VoxelData.VoxelPoints.Length; i++)
+        {
+            if (i != removeIndex)
+            {
+                newVoxels[j] = voxel.VoxelData.VoxelPoints[i];
+                j++;
+            }
+        }
+        voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
+        if (voxelCol != null)
+        {
+            voxelCol.BuildCollider();
         }
     }
 

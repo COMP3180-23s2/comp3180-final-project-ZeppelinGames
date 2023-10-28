@@ -352,12 +352,27 @@ public class VoxelRenderer : MonoBehaviour
 
     public Vector3Int WorldToLocalVoxel(Vector3 world)
     {
-        // t.TransformVector((Vector3)this.Position * VoxelBuilder.VoxelSize);
-        Vector3 inv = transform.InverseTransformVector(world - transform.position) / VoxelBuilder.VoxelSize;
+        Vector3 rounded = RoundToVoxelPosition(world - transform.position);
+        
+        Vector3 inv = transform.InverseTransformVector(rounded) / VoxelBuilder.VoxelSize;
         return new Vector3Int(
             Mathf.RoundToInt(inv.x),
             Mathf.RoundToInt(inv.y),
             Mathf.RoundToInt(inv.z)
-            );
+        );
+    }
+
+    public Vector3 RoundToVoxelPosition(Vector3 v)
+    {
+        return new Vector3(
+                Mathf.Round(v.x / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize,
+                Mathf.Round(v.y / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize,
+                Mathf.Round(v.z / VoxelBuilder.VoxelSize) * VoxelBuilder.VoxelSize
+        );
+    }
+
+    public Vector3 LocalToWorldVoxel(Vector3Int local)
+    {
+        return transform.TransformVector((Vector3)local * VoxelBuilder.VoxelSize);
     }
 }
