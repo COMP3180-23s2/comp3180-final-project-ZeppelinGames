@@ -35,6 +35,8 @@ public class VoxelRendererEditor : Editor
 
     void OnEnable()
     {
+        EditorApplication.playModeStateChanged += EditorApplication_playModeStateChanged;
+
         overrideShape = serializedObject.FindProperty("overrideShape");
         voxelDataFile = serializedObject.FindProperty("voxelDataFile");
         voxelShapeFile = serializedObject.FindProperty("voxelShapeFile");
@@ -45,7 +47,22 @@ public class VoxelRendererEditor : Editor
         UpdateVoxel();
     }
 
+    private void EditorApplication_playModeStateChanged(PlayModeStateChange state)
+    {
+        switch (state)
+        {
+            case PlayModeStateChange.EnteredPlayMode:
+                DeleteEditorGO();
+                break;
+        }
+    }
+
     private void OnDisable()
+    {
+        DeleteEditorGO();
+    }
+
+    void DeleteEditorGO()
     {
         if (voxelDataEditor != null)
         {
@@ -201,7 +218,6 @@ public class VoxelRendererEditor : Editor
                 if (voxelDataEditor == null)
                 {
                     GameObject editorGO = new GameObject("EditorGO");
-                    Debug.Log($"Created {editorGO.name}");
                     voxelDataEditor = editorGO.AddComponent<VoxelDataEditor>();
                     voxelDataEditor.SetVoxel(renderer);
                 }
@@ -215,7 +231,6 @@ public class VoxelRendererEditor : Editor
             {
                 if (voxelDataEditor != null)
                 {
-                    Debug.Log("Destroyed");
                     DestroyImmediate(voxelDataEditor.gameObject);
                     voxelDataEditor = null;
                 }

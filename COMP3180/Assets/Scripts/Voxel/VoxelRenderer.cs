@@ -250,28 +250,26 @@ public class VoxelRenderer : MonoBehaviour
             return;
         }
 
-        // pick point
-
-        // recusively check for neighbours
-        //StartCoroutine(PlzDontBlowUp());
-
         Vector3Int[] points = new Vector3Int[VoxelData.VoxelPoints.Length];
         for (int i = 0; i < points.Length; i++)
         {
             points[i] = VoxelData.VoxelPoints[i].Position;
         }
         List<List<VoxelPoint>> grouped = GroupConnected(VoxelData.VoxelPoints);
-        Debug.Log($"Groups: {grouped.Count}");
 
-        if (TryGetComponent(out VoxelCollider vc))
+        /*if (TryGetComponent(out VoxelCollider vc))
         {
             vc.enabled = false;
-        }
-        for (int i = 0; i < grouped.Count; i++)
+        }*/
+
+        if (grouped.Count > 0)
         {
-            VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, out Rigidbody _, this.transform);
+            this.BuildMesh(new VoxelData(grouped[0].ToArray(), VoxelData.Colors));
+            for (int i = 1; i < grouped.Count; i++)
+            {
+                VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, out Rigidbody _, this.transform);
+            }
         }
-        this.gameObject.SetActive(false);
     }
 
     private Vector3Int[] NeighbourOffsets = new Vector3Int[]
@@ -316,7 +314,7 @@ public class VoxelRenderer : MonoBehaviour
         }
     }
 
-    private List<VoxelPoint> GetNeighbors(VoxelPoint vector, VoxelPoint[] vector3Ints)
+    public List<VoxelPoint> GetNeighbors(VoxelPoint vector, VoxelPoint[] vector3Ints)
     {
         List<VoxelPoint> neighbors = new List<VoxelPoint>();
 
@@ -338,7 +336,7 @@ public class VoxelRenderer : MonoBehaviour
         return neighbors;
     }
 
-    private VoxelPoint? VoxelPointFromPosition(Vector3Int position)
+    public VoxelPoint? VoxelPointFromPosition(Vector3Int position)
     {
         for (int i = 0; i < VoxelData.VoxelPoints.Length; i++)
         {
@@ -350,10 +348,27 @@ public class VoxelRenderer : MonoBehaviour
         return null;
     }
 
+    public VoxelPoint ClosestPointTo(Vector3 position)
+    {
+        //defaults to first voxel if none?
+        int closest = 0;
+        float closestDist = float.MaxValue;
+        for (int i = 0; i < VoxelData.VoxelPoints.Length; i++)
+        {
+            float dist = Vector3.Distance(VoxelData.VoxelPoints[i].WorldPosition(transform), position);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                closest = i;
+            }
+        }
+        return VoxelData.VoxelPoints[closest];
+    }
+
     public Vector3Int WorldToLocalVoxel(Vector3 world)
     {
         Vector3 rounded = RoundToVoxelPosition(world - transform.position);
-        
+
         Vector3 inv = transform.InverseTransformVector(rounded) / VoxelBuilder.VoxelSize;
         return new Vector3Int(
             Mathf.RoundToInt(inv.x),
@@ -374,5 +389,10 @@ public class VoxelRenderer : MonoBehaviour
     public Vector3 LocalToWorldVoxel(Vector3Int local)
     {
         return transform.TransformVector((Vector3)local * VoxelBuilder.VoxelSize);
+    }
+
+    public Vector3 Inv(Vector3Int v)
+    {
+        return transform.InverseTransformPoint(v) / VoxelBuilder.VoxelSize;
     }
 }

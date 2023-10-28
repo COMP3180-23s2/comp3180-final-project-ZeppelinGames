@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class VoxelData
 {
+    public Dictionary<Vector3Int, VoxelPoint> VoxelMap = new Dictionary<Vector3Int, VoxelPoint>();
     public VoxelPoint[] VoxelPoints => voxelPoints;
     public Color[] Colors => colors;
 
