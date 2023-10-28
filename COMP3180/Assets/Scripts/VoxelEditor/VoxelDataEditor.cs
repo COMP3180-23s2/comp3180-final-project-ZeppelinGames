@@ -54,7 +54,7 @@ public class VoxelDataEditor : MonoBehaviour
         {
             hadCollider = false;
             VoxelCollider vcAdded = voxel.gameObject.AddComponent<VoxelCollider>();
-            vcAdded.BuildCollider();
+            //vcAdded.BuildCollider();
         }
     }
 
@@ -68,7 +68,7 @@ public class VoxelDataEditor : MonoBehaviour
         if (voxel != null && !hadCollider)
         {
             VoxelCollider vc = voxel.gameObject.GetComponent<VoxelCollider>();
-            vc.ResetCollidersEditor();
+            //vc.ResetCollidersEditor();
             DestroyImmediate(vc);
         }
 
@@ -274,7 +274,7 @@ public class VoxelDataEditor : MonoBehaviour
         voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
         if (voxelCol != null)
         {
-            voxelCol.BuildCollider();
+            //voxelCol.BuildCollider();
         }
     }
 
@@ -337,7 +337,7 @@ public class VoxelDataEditor : MonoBehaviour
         voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
         if (voxelCol != null)
         {
-            voxelCol.BuildCollider();
+           // voxelCol.BuildCollider();
         }
     }
 

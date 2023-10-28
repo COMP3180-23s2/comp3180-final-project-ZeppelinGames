@@ -168,7 +168,9 @@ public static class VoxelBuilder
 
         rend.BuildMesh(new VoxelData(points, cols));
 
-        rend.gameObject.AddComponent<VoxelCollider>();
+        //rend.gameObject.AddComponent<VoxelCollider>();
+        MeshCollider mc = rend.gameObject.AddComponent<MeshCollider>();
+        mc.convex = true;
         rig = rend.gameObject.AddComponent<Rigidbody>();
 
         return rend;

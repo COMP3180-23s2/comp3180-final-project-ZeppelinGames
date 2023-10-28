@@ -267,8 +267,8 @@ public class VoxelRendererEditor : Editor
 
             if (renderer.TryGetComponent(out VoxelCollider vc))
             {
-                vc.ResetCollidersEditor();
-                vc.BuildCollider();
+             /*   vc.ResetCollidersEditor();
+                vc.BuildCollider();*/
             }
         }
     }

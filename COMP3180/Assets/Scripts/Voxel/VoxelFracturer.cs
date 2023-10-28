@@ -61,22 +61,18 @@ public class VoxelFracturer : MonoBehaviour
             fractureChunk.Remove(neighbours[i]);
             cutChunk.Add(neighbours[i]);
         }
+        Debug.Log(cutChunk.Count);
 
-        /*for (int i = 0; i < points.Length; i++)
+        VoxelPoint? vp = vc.Renderer.VoxelPointFromPosition(voxelHitPos);
+        if (vp != null)
         {
-            if (Vector3.Distance(vc.transform.InverseTransformPoint(hitCentre), points[i].LocalPosition) < breakRadius)
-            {
-                fractureChunk.Add(points[i]);
-            }
-            else    
-            {
-                cutChunk.Add(points[i]);
-            }
-        }*/
+            cutChunk.Add(vp.Value);
+        }
 
-        if (cutChunk.Count > 0)
+
+        if (fractureChunk.Count > 0)
         {
-            VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+            VoxelData nVD = new VoxelData(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors);
             vc.Renderer.BuildMesh(nVD);
         }
 
@@ -85,21 +81,10 @@ public class VoxelFracturer : MonoBehaviour
             rr.AddForce(dir * breakForce);
         }
 
-        if (fractureChunk.Count > 0)
+        if (cutChunk.Count > 0)
         {
-            Rigidbody rig;
-            if (fractureChunk.Count != points.Length)
-            {
-                VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform);
-            }
-            else
-            {
-                vc.TryGetComponent(out rig);
-            }
-            if (rig != null)
-            {
-                rig.AddForce(dir * breakForce);
-            }
+            VoxelBuilder.NewRenderer(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors, out Rigidbody rig, vc.transform);
+            rig.AddForce(dir * breakForce);
         }
 
         // Might blow up
