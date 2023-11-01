@@ -39,8 +39,41 @@ public class VoxelFracturer : MonoBehaviour
                     Vector3 hitCentre = hit.point - (hit.normal * VoxelBuilder.HVoxelSize);
 
                     Break(vc, hitCentre, ray.direction);
+                    //Dissolve(vc, hit.point);
                 }
             }
+        }
+    }
+
+    void Dissolve(VoxelCollider vc, Vector3 hitCentre)
+    {
+        StartCoroutine(DissolveIE(
+            vc.Renderer, 
+            vc.Renderer.ClosestPointTo(hitCentre), 
+            new HashSet<VoxelPoint>()));
+    }
+
+    IEnumerator DissolveIE(VoxelRenderer vr, VoxelPoint vp, HashSet<VoxelPoint> dissolving)
+    {
+        Debug.Log(vp.Position);
+        VoxelPoint[] vps = vr.GetNeighbours(vp.Position, out int nCount);
+        List<VoxelPoint> toDissolve = new List<VoxelPoint>();
+        for (int i = 0; i < nCount; i++)
+        {
+            if (!dissolving.Contains(vps[i]))
+            {
+                toDissolve.Add(vps[i]);
+                dissolving.Add(vps[i]);
+            }
+        }
+
+        Debug.Log(nCount);
+
+        for (int i = 0; i < toDissolve.Count; i++)
+        {
+            VoxelBuilder.NewRenderer(new VoxelPoint[] { toDissolve[i] }, vr.VoxelData.Colors, out _, vr.transform);
+            DissolveIE(vr, toDissolve[i], dissolving);
+            yield return null;
         }
     }
 

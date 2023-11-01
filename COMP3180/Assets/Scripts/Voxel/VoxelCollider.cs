@@ -8,7 +8,7 @@ public class VoxelCollider : MonoBehaviour
 {
     private Dictionary<Vector3Int, BoxCollider> pointColliderMap = new Dictionary<Vector3Int, BoxCollider>();
     private Dictionary<BoxCollider, Vector3Int> colliderPointMap = new Dictionary<BoxCollider, Vector3Int>();
-    
+
     private List<BoxCollider> colliderPool = new List<BoxCollider>();
     private VoxelRenderer voxRenderer;
 
@@ -74,6 +74,8 @@ public class VoxelCollider : MonoBehaviour
 
     public void BuildCollider()
     {
+        colliderPointMap.Clear();
+        pointColliderMap.Clear();
         for (int i = 0; i < colliderPool.Count; i++)
         {
             colliderPool[i].enabled = false;
@@ -113,7 +115,7 @@ public class VoxelCollider : MonoBehaviour
 
     private void AddToMap(BoxCollider bc, Vector3Int v)
     {
-        if(!colliderPointMap.ContainsKey(bc))
+        if (!colliderPointMap.ContainsKey(bc))
         {
             colliderPointMap.Add(bc, v);
             pointColliderMap.Add(v, bc);
@@ -122,7 +124,7 @@ public class VoxelCollider : MonoBehaviour
 
     private void RemoveFromMap(BoxCollider bc)
     {
-        if(colliderPointMap.ContainsKey(bc))
+        if (colliderPointMap.ContainsKey(bc))
         {
             pointColliderMap.Remove(colliderPointMap[bc]);
             colliderPointMap.Remove(bc);
@@ -144,7 +146,10 @@ public class VoxelCollider : MonoBehaviour
         Gizmos.matrix = transform.localToWorldMatrix;
         for (int i = 0; i < colliderPool.Count; i++)
         {
-            Gizmos.DrawWireCube(colliderPool[i].center, colliderPool[i].size);
+            if (colliderPool[i].enabled)
+            {
+                Gizmos.DrawWireCube(colliderPool[i].center, colliderPool[i].size);
+            }
         }
     }
 
@@ -155,6 +160,8 @@ public class VoxelCollider : MonoBehaviour
         {
             colliderPool[i].enabled = false;
         }
+        colliderPointMap.Clear();
+        pointColliderMap.Clear();
     }
 
     private void OnDestroy()

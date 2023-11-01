@@ -134,7 +134,19 @@ public static class VoxParser
                         switch (state)
                         {
                             case LoadState.POINT:
-                                voxelPoints.Add(ParseVoxelPoint(data));
+                                VoxelPoint vp = ParseVoxelPoint(data);
+                                bool add = true;
+                                for (int j = 0; j < voxelPoints.Count; j++)
+                                {
+                                    if (voxelPoints[j].Position == vp.Position)
+                                    {
+                                        add = false;
+                                    }
+                                }
+                                if (add)
+                                {
+                                    voxelPoints.Add(vp);
+                                }
                                 break;
 
                             case LoadState.VERTEX:
