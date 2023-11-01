@@ -38,7 +38,8 @@ public class VoxelFracturer : MonoBehaviour
 
                     Vector3 hitCentre = hit.point - (hit.normal * VoxelBuilder.HVoxelSize);
 
-                    Break(vc, hitCentre, ray.direction);
+                    //Break(vc, hitCentre, ray.direction);
+                    Dissolve(vc, hit.point);
                 }
             }
         }
@@ -46,33 +47,80 @@ public class VoxelFracturer : MonoBehaviour
 
     void Dissolve(VoxelCollider vc, Vector3 hitCentre)
     {
+        VoxelRenderer vr = vc.Renderer;
+        List<VoxelPoint> n = FindAllNeighbors(vr, vr.ClosestPointTo(hitCentre),new List<VoxelPoint>( vr.VoxelData.VoxelPoints));
+        Debug.Log(n.Count);
+        StartCoroutine(DissolveIE(vr, n));
     }
+
+    IEnumerator DissolveIE(VoxelRenderer vr, List<VoxelPoint> vps)
+    {
+        for (int i = vps.Count - 1; i >= 0; i--)
+        {
+            // remove from vr. create new
+            List<VoxelPoint> vrVps = new List<VoxelPoint>(vr.VoxelData.VoxelPoints);
+            vrVps.Remove(vps[i]);
+            vr.BuildMesh(new VoxelData(vrVps.ToArray(), vr.VoxelData.Colors));
+
+            VoxelBuilder.NewRenderer(new VoxelPoint[] { vps[i] }, vr.VoxelData.Colors, out _, vr.transform);
+            yield return null;
+        }
+    }
+
+    public List<VoxelPoint> FindAllNeighbors(VoxelRenderer vr, VoxelPoint startPoint, List<VoxelPoint> pointList)
+    {
+        List<VoxelPoint> result = new List<VoxelPoint>();
+        List<VoxelPoint> visited = new List<VoxelPoint>();
+        List<VoxelPoint> toVisit = new List<VoxelPoint>();
+
+        toVisit.Add(startPoint);
+
+        while (toVisit.Count > 0)
+        {
+            VoxelPoint currentPoint = toVisit[0];
+            toVisit.RemoveAt(0);
+
+            if (!visited.Contains(currentPoint))
+            {
+                visited.Add(currentPoint);
+                result.Add(currentPoint);
+
+                VoxelPoint[] neighbors = vr.GetNeighbours(currentPoint.Position, out int neighbourCount);
+
+                for (int i = 0; i < neighbourCount; i++)
+                {
+                    if (pointList.Contains(neighbors[i]))
+                    {
+                        toVisit.Add(neighbors[i]);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
     void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir)
     {
         VoxelPoint[] points = vc.Renderer.VoxelData.VoxelPoints;
-        List<VoxelPoint> fractureChunk = new List<VoxelPoint>(vc.Renderer.VoxelData.VoxelPoints);
+        List<VoxelPoint> fractureChunk = new List<VoxelPoint>();
         List<VoxelPoint> cutChunk = new List<VoxelPoint>();
 
-        Vector3Int voxelHitPos = vc.Renderer.WorldToLocalVoxel(hitCentre);
-
-        VoxelPoint[] neighbours = vc.Renderer.GetNeighbours(voxelHitPos, out int nCount);
-        for (int i = 0; i < nCount; i++)
+        for (int i = 0; i < points.Length; i++)
         {
-            fractureChunk.Remove(neighbours[i]);
-            cutChunk.Add(neighbours[i]);
-        }
-        Debug.Log(cutChunk.Count);
-
-        VoxelPoint? vp = vc.Renderer.VoxelPointFromPosition(voxelHitPos);
-        if (vp != null)
-        {
-            cutChunk.Add(vp.Value);
+            if (Vector3.Distance(vc.transform.InverseTransformPoint(hitCentre), points[i].LocalPosition) < breakRadius)
+            {
+                fractureChunk.Add(points[i]);
+            }
+            else
+            {
+                cutChunk.Add(points[i]);
+            }
         }
 
-
-        if (fractureChunk.Count > 0)
+        if (cutChunk.Count > 0)
         {
-            VoxelData nVD = new VoxelData(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+            VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
             vc.Renderer.BuildMesh(nVD);
         }
 
@@ -81,10 +129,21 @@ public class VoxelFracturer : MonoBehaviour
             rr.AddForce(dir * breakForce);
         }
 
-        if (cutChunk.Count > 0)
+        if (fractureChunk.Count > 0)
         {
-            VoxelBuilder.NewRenderer(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors, out Rigidbody rig, vc.transform);
-            rig.AddForce(dir * breakForce);
+            Rigidbody rig;
+            if (fractureChunk.Count != points.Length)
+            {
+                VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform);
+            }
+            else
+            {
+                vc.TryGetComponent(out rig);
+            }
+            if (rig != null)
+            {
+                rig.AddForce(dir * breakForce);
+            }
         }
 
         // Might blow up

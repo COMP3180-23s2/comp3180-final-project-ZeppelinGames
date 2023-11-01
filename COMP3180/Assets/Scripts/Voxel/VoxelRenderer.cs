@@ -309,13 +309,13 @@ public class VoxelRenderer : MonoBehaviour
             }
         }
 
-     /*   foreach (VoxelPoint neighbor in GetNeighbors(vector))
-        {
-            if (!visited.Contains(neighbor))
-            {
-                DepthFirstSearch(neighbor, vector3Ints, visited, group);
-            }
-        }*/
+        /*   foreach (VoxelPoint neighbor in GetNeighbors(vector))
+           {
+               if (!visited.Contains(neighbor))
+               {
+                   DepthFirstSearch(neighbor, vector3Ints, visited, group);
+               }
+           }*/
     }
 
     public List<VoxelPoint> GetNeighbours(VoxelPoint vector)

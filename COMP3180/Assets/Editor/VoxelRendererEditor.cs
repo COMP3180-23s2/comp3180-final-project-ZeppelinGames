@@ -119,7 +119,7 @@ public class VoxelRendererEditor : Editor
 
             if (discard)
             {
-                UpdateVoxel();
+                LoadAndUpdate();
             }
 
             if (save)
@@ -169,7 +169,7 @@ public class VoxelRendererEditor : Editor
                         {
                             TextAsset newTextAsset = CreateNewVoxelDataFile(savePath);
                             renderer.VoxelDataFile = newTextAsset;
-                            UpdateVoxel();
+                            LoadAndUpdate();
                         }
                         else
                         {
@@ -257,7 +257,7 @@ public class VoxelRendererEditor : Editor
         return newTextAsset;
     }
 
-    void UpdateVoxel()
+    void LoadAndUpdate()
     {
         VoxelRenderer renderer = (VoxelRenderer)target;
         if (renderer != null)
@@ -269,6 +269,21 @@ public class VoxelRendererEditor : Editor
             {
              /*   vc.ResetCollidersEditor();
                 vc.BuildCollider();*/
+            }
+        }
+    }
+
+    void UpdateVoxel()
+    {
+        VoxelRenderer renderer = (VoxelRenderer)target;
+        if (renderer != null)
+        {
+            renderer.BuildMesh();
+
+            if (renderer.TryGetComponent(out VoxelCollider vc))
+            {
+                vc.ResetCollidersEditor();
+                vc.BuildCollider();
             }
         }
     }

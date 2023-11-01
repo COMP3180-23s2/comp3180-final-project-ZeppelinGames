@@ -15,7 +15,7 @@ public class VoxelData
 
     public VoxelPoint[] VoxelPoints => voxelPoints;
     private VoxelPoint[] voxelPoints;
-    
+
     public Color[] Colors => colors;
     private Color[] colors;
 
