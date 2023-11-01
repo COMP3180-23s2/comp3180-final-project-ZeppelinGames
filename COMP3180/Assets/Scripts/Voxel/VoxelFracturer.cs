@@ -38,8 +38,8 @@ public class VoxelFracturer : MonoBehaviour
 
                     Vector3 hitCentre = hit.point - (hit.normal * VoxelBuilder.HVoxelSize);
 
-                    Break(vc, hitCentre, ray.direction);
-                    //Dissolve(vc, hit.point);
+                    //Break(vc, hitCentre, ray.direction);
+                    Dissolve(vc, hit.point);
                 }
             }
         }
@@ -47,34 +47,57 @@ public class VoxelFracturer : MonoBehaviour
 
     void Dissolve(VoxelCollider vc, Vector3 hitCentre)
     {
-        StartCoroutine(DissolveIE(
-            vc.Renderer, 
-            vc.Renderer.ClosestPointTo(hitCentre), 
-            new HashSet<VoxelPoint>()));
+        VoxelRenderer vr = vc.Renderer;
+        List<VoxelPoint> n = FindAllNeighbors(vr, vr.ClosestPointTo(hitCentre),new List<VoxelPoint>( vr.VoxelData.VoxelPoints));
+        Debug.Log(n.Count);
+        StartCoroutine(DissolveIE(vr, n));
     }
 
-    IEnumerator DissolveIE(VoxelRenderer vr, VoxelPoint vp, HashSet<VoxelPoint> dissolving)
+    IEnumerator DissolveIE(VoxelRenderer vr, List<VoxelPoint> vps)
     {
-        Debug.Log(vp.Position);
-        VoxelPoint[] vps = vr.GetNeighbours(vp.Position, out int nCount);
-        List<VoxelPoint> toDissolve = new List<VoxelPoint>();
-        for (int i = 0; i < nCount; i++)
+        for (int i = vps.Count - 1; i >= 0; i--)
         {
-            if (!dissolving.Contains(vps[i]))
+            // remove from vr. create new
+            List<VoxelPoint> vrVps = new List<VoxelPoint>(vr.VoxelData.VoxelPoints);
+            vrVps.Remove(vps[i]);
+            vr.BuildMesh(new VoxelData(vrVps.ToArray(), vr.VoxelData.Colors));
+
+            VoxelBuilder.NewRenderer(new VoxelPoint[] { vps[i] }, vr.VoxelData.Colors, out _, vr.transform);
+            yield return null;
+        }
+    }
+
+    public List<VoxelPoint> FindAllNeighbors(VoxelRenderer vr, VoxelPoint startPoint, List<VoxelPoint> pointList)
+    {
+        List<VoxelPoint> result = new List<VoxelPoint>();
+        List<VoxelPoint> visited = new List<VoxelPoint>();
+        List<VoxelPoint> toVisit = new List<VoxelPoint>();
+
+        toVisit.Add(startPoint);
+
+        while (toVisit.Count > 0)
+        {
+            VoxelPoint currentPoint = toVisit[0];
+            toVisit.RemoveAt(0);
+
+            if (!visited.Contains(currentPoint))
             {
-                toDissolve.Add(vps[i]);
-                dissolving.Add(vps[i]);
+                visited.Add(currentPoint);
+                result.Add(currentPoint);
+
+                VoxelPoint[] neighbors = vr.GetNeighbours(currentPoint.Position, out int neighbourCount);
+
+                for (int i = 0; i < neighbourCount; i++)
+                {
+                    if (pointList.Contains(neighbors[i]))
+                    {
+                        toVisit.Add(neighbors[i]);
+                    }
+                }
             }
         }
 
-        Debug.Log(nCount);
-
-        for (int i = 0; i < toDissolve.Count; i++)
-        {
-            VoxelBuilder.NewRenderer(new VoxelPoint[] { toDissolve[i] }, vr.VoxelData.Colors, out _, vr.transform);
-            DissolveIE(vr, toDissolve[i], dissolving);
-            yield return null;
-        }
+        return result;
     }
 
     void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir)
