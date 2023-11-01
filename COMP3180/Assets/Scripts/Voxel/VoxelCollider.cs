@@ -6,20 +6,31 @@ using UnityEngine;
 [RequireComponent(typeof(VoxelRenderer))]
 public class VoxelCollider : MonoBehaviour
 {
-    private List<BoxCollider> colliders = new List<BoxCollider>();
-    private List<int[]> pointsLinks = new List<int[]>();
-
+    private Dictionary<Vector3Int, BoxCollider> pointColliderMap = new Dictionary<Vector3Int, BoxCollider>();
+    private Dictionary<BoxCollider, Vector3Int> colliderPointMap = new Dictionary<BoxCollider, Vector3Int>();
+    
+    private List<BoxCollider> colliderPool = new List<BoxCollider>();
     private VoxelRenderer voxRenderer;
 
-    public VoxelRenderer Renderer => voxRenderer;
+    public VoxelRenderer Renderer
+    {
+        get
+        {
+            if (voxRenderer == null)
+            {
+                voxRenderer = GetComponent<VoxelRenderer>();
+            }
+            return voxRenderer;
+        }
+    }
 
     private void Start()
     {
-        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
+        /*BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
         for (int i = 0; i < cols.Length; i++)
         {
             Destroy(cols[i]);
-        }
+        }*/
 
         voxRenderer = GetComponent<VoxelRenderer>();
         voxRenderer.meshBuildComplete += MeshBuildEnd;
@@ -31,56 +42,118 @@ public class VoxelCollider : MonoBehaviour
         BuildCollider();
     }
 
+    private BoxCollider GetPooledCollider()
+    {
+        if (FirstDisabledCollider(out BoxCollider c))
+        {
+            return c;
+        }
+        else
+        {
+            BoxCollider bc = gameObject.AddComponent<BoxCollider>();
+            bc.hideFlags = HideFlags.HideInInspector | HideFlags.HideAndDontSave;
+            colliderPool.Add(bc);
+            return bc;
+        }
+    }
+
+    private bool FirstDisabledCollider(out BoxCollider c)
+    {
+        c = null;
+        for (int i = 0; i < colliderPool.Count; i++)
+        {
+            if (!colliderPool[i].enabled)
+            {
+                c = colliderPool[i];
+                c.enabled = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void BuildCollider()
     {
-        if (voxRenderer == null)
+        for (int i = 0; i < colliderPool.Count; i++)
         {
-            voxRenderer = GetComponent<VoxelRenderer>();
+            colliderPool[i].enabled = false;
         }
 
-        for (int i = 0; i < colliders.Count; i++)
+        for (int i = 0; i < Renderer.VoxelData.VoxelPoints.Length; i++)
         {
-            DestroyImmediate(colliders[i]);
+            VoxelPoint vp = Renderer.VoxelData.VoxelPoints[i];
+            if (pointColliderMap.ContainsKey(vp.Position))
+            {
+                BoxCollider bc = pointColliderMap[vp.Position];
+                bc.enabled = true;
+            }
+            else
+            {
+                BoxCollider c = GetPooledCollider();
+                AddToMap(c, vp.Position);
+                c.center = vp.LocalPosition;
+                c.size = new Vector3(0.9f, 0.9f, 0.9f) * VoxelBuilder.VoxelSize;
+            }
         }
-        colliders.Clear();
-        pointsLinks.Clear();
+    }
 
-        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
-        for (int i = 0; i < cols.Length; i++)
+    [ContextMenu("Reset Colliders")]
+    private void ResetColliders()
+    {
+        BoxCollider[] bcs = gameObject.GetComponents<BoxCollider>();
+        for (int i = 0; i < bcs.Length; i++)
         {
-            DestroyImmediate(cols[i]);
+            DestroyImmediate(bcs[i]);
         }
 
-        if (voxRenderer.VoxelData == null)
+        colliderPointMap.Clear();
+        pointColliderMap.Clear();
+        colliderPool.Clear();
+    }
+
+    private void AddToMap(BoxCollider bc, Vector3Int v)
+    {
+        if(!colliderPointMap.ContainsKey(bc))
         {
-            return;
+            colliderPointMap.Add(bc, v);
+            pointColliderMap.Add(v, bc);
         }
+    }
 
-        VoxelPoint[] points = voxRenderer.VoxelData.VoxelPoints;
-        for (int i = 0; i < points.Length; i++)
+    private void RemoveFromMap(BoxCollider bc)
+    {
+        if(colliderPointMap.ContainsKey(bc))
         {
-            BoxCollider c = GetCollider();
-            c.center = points[i].LocalPosition;
+            pointColliderMap.Remove(colliderPointMap[bc]);
+            colliderPointMap.Remove(bc);
+        }
+    }
 
-            c.size = new Vector3(0.9f, 0.9f, 0.9f) * VoxelBuilder.VoxelSize;
+    private void RemoveFromMap(Vector3Int v)
+    {
+        if (pointColliderMap.ContainsKey(v))
+        {
+            colliderPointMap.Remove(pointColliderMap[v]);
+            pointColliderMap.Remove(v);
+        }
+    }
 
-            pointsLinks.Add(new int[] { i });
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.matrix = transform.localToWorldMatrix;
+        for (int i = 0; i < colliderPool.Count; i++)
+        {
+            Gizmos.DrawWireCube(colliderPool[i].center, colliderPool[i].size);
         }
     }
 
 #if UNITY_EDITOR
     public void ResetCollidersEditor()
     {
-        for (int i = 0; i < colliders.Count; i++)
+        for (int i = 0; i < colliderPool.Count; i++)
         {
-            DestroyImmediate(colliders[i]);
-        }
-        colliders.Clear();
-
-        BoxCollider[] cols = gameObject.GetComponents<BoxCollider>();
-        for (int i = 0; i < cols.Length; i++)
-        {
-            DestroyImmediate(cols[i]);
+            colliderPool[i].enabled = false;
         }
     }
 
@@ -93,12 +166,4 @@ public class VoxelCollider : MonoBehaviour
         ResetCollidersEditor();
     }
 #endif
-
-    BoxCollider GetCollider()
-    {
-        BoxCollider col = gameObject.AddComponent<BoxCollider>();
-        col.hideFlags = HideFlags.HideInInspector;
-        colliders.Add(col);
-        return col;
-    }
 }

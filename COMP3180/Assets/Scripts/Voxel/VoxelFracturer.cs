@@ -44,9 +44,6 @@ public class VoxelFracturer : MonoBehaviour
         }
     }
 
-    void Dissolve(VoxelCollider vc, Vector3 hitCentre)
-    {
-    }
     void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir)
     {
         VoxelPoint[] points = vc.Renderer.VoxelData.VoxelPoints;
@@ -68,8 +65,6 @@ public class VoxelFracturer : MonoBehaviour
         if (cutChunk.Count > 0)
         {
             VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
-            //vc.Renderer.UpdateVoxelData(nVD);
-            //vc.BuildCollider();
             vc.Renderer.BuildMesh(nVD);
         }
 
