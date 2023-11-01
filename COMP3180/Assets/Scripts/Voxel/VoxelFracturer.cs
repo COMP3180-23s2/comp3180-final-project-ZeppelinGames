@@ -50,33 +50,26 @@ public class VoxelFracturer : MonoBehaviour
     void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir)
     {
         VoxelPoint[] points = vc.Renderer.VoxelData.VoxelPoints;
-        List<VoxelPoint> fractureChunk = new List<VoxelPoint>(vc.Renderer.VoxelData.VoxelPoints);
+        List<VoxelPoint> fractureChunk = new List<VoxelPoint>();
         List<VoxelPoint> cutChunk = new List<VoxelPoint>();
 
-        Vector3Int voxelHitPos = vc.Renderer.WorldToLocalVoxel(hitCentre);
-
-        VoxelPoint[] neighbours = vc.Renderer.GetNeighbours(voxelHitPos, out int nCount);
-        for (int i = 0; i < nCount; i++)
-        {
-            fractureChunk.Remove(neighbours[i]);
-            cutChunk.Add(neighbours[i]);
-        }
-
-        /*for (int i = 0; i < points.Length; i++)
+        for (int i = 0; i < points.Length; i++)
         {
             if (Vector3.Distance(vc.transform.InverseTransformPoint(hitCentre), points[i].LocalPosition) < breakRadius)
             {
                 fractureChunk.Add(points[i]);
             }
-            else    
+            else
             {
                 cutChunk.Add(points[i]);
             }
-        }*/
+        }
 
         if (cutChunk.Count > 0)
         {
             VoxelData nVD = new VoxelData(cutChunk.ToArray(), vc.Renderer.VoxelData.Colors);
+            //vc.Renderer.UpdateVoxelData(nVD);
+            //vc.BuildCollider();
             vc.Renderer.BuildMesh(nVD);
         }
 

@@ -257,6 +257,11 @@ public class VoxelRenderer : MonoBehaviour
         }
         List<List<VoxelPoint>> grouped = GroupConnected(VoxelData.VoxelPoints);
 
+        /*if (TryGetComponent(out VoxelCollider vc))
+        {
+            vc.enabled = false;
+        }*/
+
         if (grouped.Count > 0)
         {
             this.BuildMesh(new VoxelData(grouped[0].ToArray(), VoxelData.Colors));
@@ -300,65 +305,35 @@ public class VoxelRenderer : MonoBehaviour
         visited.Add(vector);
         group.Add(vector);
 
-        VoxelPoint[] neighbours = GetNeighbours(vector.Position, out int nCount);
-        for (int i = 0; i < nCount; i++)
-        {
-            if (!visited.Contains(neighbours[i]))
-            {
-                DepthFirstSearch(neighbours[i], vector3Ints, visited, group);
-            }
-        }
-
-     /*   foreach (VoxelPoint neighbor in GetNeighbors(vector))
+        foreach (VoxelPoint neighbor in GetNeighbors(vector, vector3Ints))
         {
             if (!visited.Contains(neighbor))
             {
                 DepthFirstSearch(neighbor, vector3Ints, visited, group);
             }
-        }*/
+        }
     }
 
-    public List<VoxelPoint> GetNeighbours(VoxelPoint vector)
+    public List<VoxelPoint> GetNeighbors(VoxelPoint vector, VoxelPoint[] vector3Ints)
     {
         List<VoxelPoint> neighbors = new List<VoxelPoint>();
 
         foreach (Vector3Int offset in NeighbourOffsets)
         {
             Vector3Int neighbor = vector.Position + offset;
-            if (voxelData.VoxelMap.ContainsKey(neighbor))
+            if (Array.Exists(vector3Ints, v => v.Position == neighbor))
             {
-                neighbors.Add(voxelData.VoxelMap[neighbor]);
+                //Get vp from pos
+                //neighbors.Add(neighbor);
+                VoxelPoint? vp = VoxelPointFromPosition(neighbor);
+                if (vp != null)
+                {
+                    neighbors.Add(vp.Value);
+                }
             }
-            /* if (Array.Exists(vector3Ints, v => v.Position == neighbor))
-             {
-                 //Get vp from pos
-                 //neighbors.Add(neighbor);
-                 VoxelPoint? vp = VoxelPointFromPosition(neighbor);
-                 if (vp != null)
-                 {
-                     neighbors.Add(vp.Value);
-                 }
-             }*/
         }
 
         return neighbors;
-    }
-
-    public VoxelPoint[] GetNeighbours(Vector3Int v, out int neighbourCount)
-    {
-        VoxelPoint[] neighbours = new VoxelPoint[9];
-        neighbourCount = 0;
-
-        foreach (Vector3Int offset in NeighbourOffsets)
-        {
-            Vector3Int neighbour = v + offset;
-            if (voxelData.VoxelMap.ContainsKey(neighbour))
-            {
-                neighbours[neighbourCount] = voxelData.VoxelMap[neighbour];
-                neighbourCount++;
-            }
-        }
-        return neighbours;
     }
 
     public VoxelPoint? VoxelPointFromPosition(Vector3Int position)
