@@ -20,7 +20,7 @@ public class VoxelShape
     public VoxelShape(TextAsset voxelShapeFile)
     {
         this.voxelShapeFile = voxelShapeFile;
-        VoxParser.Parse(
+        VoxelParser.Parse(
             voxelShapeFile.text,
             out verts,
             out _, out _,

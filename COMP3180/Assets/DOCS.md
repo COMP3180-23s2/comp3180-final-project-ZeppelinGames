@@ -1,39 +1,57 @@
-### VoxelPoint
-Stores point voxel should be built around, aligned to grid as well as its colour index.
+# Script Documentation
 
-### VoxelData
-Data for full voxel mesh. Contains all the points in the voxel and colours for the mesh
+### Voxel Point (`Scripts/Voxel/VoxelPoint.cs`, Class)
+- Stores position of voxel
+- Stores colour index mapped to VoxelData's colour palette.
 
-### VoxelShape
-Data for the shape of individual voxels. 
+### Voxel Parser (`Scripts/Voxel/VoxelParser.cs`, Class)
+- Reads voxel data files and converts it to relevant data
 
-### Voxel Builder
-Combines VoxelData and VoxelShape to generate meshes. Defines the grid size of the voxels.
+### Voxel Data (`Scripts/Voxel/VoxelData.cs`, Class)
+- Contains all the data for generating mesh.
+- Stores VoxelPoints, color palette and mappings of voxel positions
 
-### Voxel Manager
-Creates Voxel Data, Shape and Builder classes to create mesh to be applied to MeshRenderer
+### Voxel Shape (`Scripts/Voxel/VoxelShape.cs`, Class)
+- Data for the shape of individual voxels. 
 
-## Basic Usage
-```cs
-    [SerializeField] private TextAsset voxelDataFile;
-    [SerializeField] private TextAsset voxelShapeFile;
+### Voxel Builder (`Scripts/Voxel/VoxelBuilder.cs`, Class)
+- Combines VoxelData and VoxelShape to generate meshes. 
+- Defines the grid size of the voxels.
 
-    private VoxelBuilder voxelBuilder = new VoxelBuilder();
+### Voxel Renderer (`Scripts/Voxel/VoxelRenderer.cs`, Component)
+- Main voxel rendering component
+- Manages mesh renderer and filter
+- Manages voxel subcomponents (VoxelCollider)
 
-    private MeshFilter meshFilter;
+### Voxel Fracturer (`Scripts/Voxel/VoxelFracturer.cs`, Component)
+- Handles raycasting to voxels
+- Handles defining which voxel to be fractured
 
-    private void Start()
-    {
-        meshFilter = GetComponent<MeshFilter>();
+### Voxel Collider (`Scripts/Voxel/VoxelCollider.cs`, Component)
+- Generates and updates voxel colliders
 
-        VoxelData voxelData = new VoxelData(voxelDataFile);
-        VoxelShape voxelShape = new VoxelShape(voxelShapeFile);
-        Mesh mesh = voxelBuilder.Build(voxelData, voxelShape);
-        meshFilter.mesh = mesh;
-    }
+### Voxel Renderer Editor (`Editor/VoxelRendererEditor.cs`, Editor Tool)
+- Handles GUI and Editor updates for `VoxelRenderer` component
+- Manages creating new voxel data files.
+- Manages entering and exiting exit mode
+- Defines default Voxel creating GameObject (`CreateVoxel` function)
+
+### Voxel Data Editor (`Scripts/VoxelEditor/VoxelDataEditor.cs`, Editor Tool)
+- Manages in Editor editing of voxel data
+- Handles GUI and Gizmos for Scene view Editor tools
+
+## Script relation structure
+```
+├─ Voxel Point
+├─ Voxel Parser
+    ├─ Voxel Data 
+    ├─ Voxel Shape
+        ├─ Voxel Builder
+            ├─ Voxel Renderer
+            ├─ Voxel Collider
 ```
 
-## Voxel File Format
+# Voxel File Format
 #### Comment (#)
 Creates comments within the file. Not read.   
 **Format:** `# [COMMENT];`   

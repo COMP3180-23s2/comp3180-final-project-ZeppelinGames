@@ -26,7 +26,6 @@ public class VoxelRenderer : MonoBehaviour
         }
     }
 
-    [SerializeField] private bool overrideShape = false;
     [SerializeField] private TextAsset voxelShapeFile;
     [SerializeField] private VoxelBreakType breakType;
     public VoxelBreakType BreakType => breakType;

@@ -24,7 +24,7 @@ public class VoxelData
     public VoxelData(TextAsset voxelDataFile)
     {
         this.voxelDataFile = voxelDataFile;
-        VoxParser.Parse(
+        VoxelParser.Parse(
             voxelDataFile.text,
             out _,
             out voxelPoints,
