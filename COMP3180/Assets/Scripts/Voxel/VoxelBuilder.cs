@@ -157,7 +157,7 @@ public static class VoxelBuilder
         cOut = cols.ToArray();
     }
 
-    public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null)
+    public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null, Material newMat = null)
     {
         VoxelRenderer rend = new GameObject().AddComponent<VoxelRenderer>();
 
@@ -166,11 +166,13 @@ public static class VoxelBuilder
             rend.gameObject.transform.SetPositionAndRotation(transform.position, transform.rotation);
         }
 
+        if (newMat != null)
+        {
+            rend.UpdateMaterial(newMat);
+        }
         rend.BuildMesh(new VoxelData(points, cols));
 
-        //rend.gameObject.AddComponent<VoxelCollider>();
-        MeshCollider mc = rend.gameObject.AddComponent<MeshCollider>();
-        mc.convex = true;
+        rend.gameObject.AddComponent<VoxelCollider>();
         rig = rend.gameObject.AddComponent<Rigidbody>();
 
         return rend;

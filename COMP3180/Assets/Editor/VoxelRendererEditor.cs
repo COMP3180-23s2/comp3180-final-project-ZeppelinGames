@@ -12,6 +12,7 @@ public class VoxelRendererEditor : Editor
     SerializedProperty voxelDataFile;
     SerializedProperty overrideShape;
     SerializedProperty voxelShapeFile;
+    SerializedProperty voxelBreakType;
 
     SerializedProperty overrideDefaultMaterialBool;
     SerializedProperty material;
@@ -40,6 +41,7 @@ public class VoxelRendererEditor : Editor
         overrideShape = serializedObject.FindProperty("overrideShape");
         voxelDataFile = serializedObject.FindProperty("voxelDataFile");
         voxelShapeFile = serializedObject.FindProperty("voxelShapeFile");
+        voxelBreakType = serializedObject.FindProperty("breakType");
 
         overrideDefaultMaterialBool = serializedObject.FindProperty("overrideDefaultMaterial");
         material = serializedObject.FindProperty("mat");
@@ -100,6 +102,7 @@ public class VoxelRendererEditor : Editor
         {
             EditorGUILayout.PropertyField(material);
         }
+        EditorGUILayout.PropertyField(voxelBreakType);
 
         bool edit = false;
 

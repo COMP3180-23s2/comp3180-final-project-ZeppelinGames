@@ -38,8 +38,16 @@ public class VoxelFracturer : MonoBehaviour
 
                     Vector3 hitCentre = hit.point - (hit.normal * VoxelBuilder.HVoxelSize);
 
+                    switch (vc.Renderer.BreakType)
+                    {
+                        case VoxelBreakType.PHYSICS:
+                            Break(vc, hitCentre, ray.direction);
+                            break;
+                        case VoxelBreakType.SAND:
+                            Dissolve(vc, hit.point);
+                            break;
+                    }
                     //Break(vc, hitCentre, ray.direction);
-                    Dissolve(vc, hit.point);
                 }
             }
         }
@@ -62,7 +70,7 @@ public class VoxelFracturer : MonoBehaviour
             vrVps.Remove(vps[i]);
             vr.BuildMesh(new VoxelData(vrVps.ToArray(), vr.VoxelData.Colors));
 
-            VoxelBuilder.NewRenderer(new VoxelPoint[] { vps[i] }, vr.VoxelData.Colors, out _, vr.transform);
+            VoxelBuilder.NewRenderer(new VoxelPoint[] { vps[i] }, vr.VoxelData.Colors, out _, vr.transform, vr.Material);
             yield return null;
         }
     }
@@ -134,7 +142,7 @@ public class VoxelFracturer : MonoBehaviour
             Rigidbody rig;
             if (fractureChunk.Count != points.Length)
             {
-                VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform);
+                VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform, vc.Renderer.Material);
             }
             else
             {
