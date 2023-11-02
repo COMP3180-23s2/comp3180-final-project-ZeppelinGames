@@ -3,7 +3,7 @@ using UnityEngine;
 
 public enum VoxelBreakType
 {
-    RIGID,
+    NONE,
     PHYSICS,
     SAND
 }

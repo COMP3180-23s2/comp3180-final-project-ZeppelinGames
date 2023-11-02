@@ -30,6 +30,7 @@ public class VoxelRendererEditor : Editor
         GameObject newVoxelGO = EditorUtility.CreateGameObjectWithHideFlags("Voxel", HideFlags.None);
         VoxelRenderer vr = newVoxelGO.AddComponent<VoxelRenderer>();
         VoxelCollider vc = newVoxelGO.AddComponent<VoxelCollider>();
+        Rigidbody rb = newVoxelGO.AddComponent<Rigidbody>();
 
         Selection.activeObject = newVoxelGO;
     }
@@ -270,8 +271,8 @@ public class VoxelRendererEditor : Editor
 
             if (renderer.TryGetComponent(out VoxelCollider vc))
             {
-             /*   vc.ResetCollidersEditor();
-                vc.BuildCollider();*/
+                //vc.ResetCollidersEditor();
+                vc.BuildCollider();
             }
         }
     }

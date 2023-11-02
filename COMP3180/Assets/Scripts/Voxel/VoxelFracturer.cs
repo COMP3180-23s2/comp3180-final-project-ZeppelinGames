@@ -2,17 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-enum BreakType
-{
-    CHUNK,
-    INDIVIDUAL
-}
-
 public class VoxelFracturer : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    [SerializeField] private BreakType breakType;
     [SerializeField] private float breakForce = 5f;
     [SerializeField] private float breakRadius = 3f;
 
@@ -41,13 +33,12 @@ public class VoxelFracturer : MonoBehaviour
                     switch (vc.Renderer.BreakType)
                     {
                         case VoxelBreakType.PHYSICS:
-                            Break(vc, hitCentre, ray.direction);
+                            Break(vc, hitCentre, ray.direction, breakRadius);
                             break;
                         case VoxelBreakType.SAND:
                             Dissolve(vc, hit.point);
                             break;
                     }
-                    //Break(vc, hitCentre, ray.direction);
                 }
             }
         }
@@ -70,7 +61,7 @@ public class VoxelFracturer : MonoBehaviour
             vrVps.Remove(vps[i]);
             vr.BuildMesh(new VoxelData(vrVps.ToArray(), vr.VoxelData.Colors));
 
-            VoxelBuilder.NewRenderer(new VoxelPoint[] { vps[i] }, vr.VoxelData.Colors, out _, vr.transform, vr.Material);
+            VoxelBuilder.NewRenderer(new VoxelPoint[] { vps[i] }, vr.VoxelData.Colors, out _, vr.transform, vr);
             yield return null;
         }
     }
@@ -108,7 +99,7 @@ public class VoxelFracturer : MonoBehaviour
         return result;
     }
 
-    void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir)
+    void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir, float breakRadius)
     {
         VoxelPoint[] points = vc.Renderer.VoxelData.VoxelPoints;
         List<VoxelPoint> fractureChunk = new List<VoxelPoint>();
@@ -125,6 +116,11 @@ public class VoxelFracturer : MonoBehaviour
                 cutChunk.Add(points[i]);
             }
         }
+        if (fractureChunk.Count == 0)
+        {
+            Break(vc, hitCentre, dir, breakRadius * 0.5f);
+            return;
+        }
 
         if (cutChunk.Count > 0)
         {
@@ -132,17 +128,17 @@ public class VoxelFracturer : MonoBehaviour
             vc.Renderer.BuildMesh(nVD);
         }
 
-        if (vc.TryGetComponent(out Rigidbody rr))
+       /* if (vc.TryGetComponent(out Rigidbody rr))
         {
             rr.AddForce(dir * breakForce);
-        }
+        }*/
 
         if (fractureChunk.Count > 0)
         {
             Rigidbody rig;
             if (fractureChunk.Count != points.Length)
             {
-                VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform, vc.Renderer.Material);
+                VoxelBuilder.NewRenderer(fractureChunk.ToArray(), vc.Renderer.VoxelData.Colors, out rig, vc.transform, vc.Renderer);
             }
             else
             {

@@ -165,6 +165,11 @@ public class VoxelRenderer : MonoBehaviour
         MeshRenderer.material = Material;
     }
 
+    public void UpdateBreakType(VoxelBreakType breakType)
+    {
+        this.breakType = breakType;
+    }
+
     public void UpdateVoxelData(VoxelData vd = null, VoxelShape vs = null)
     {
         if (vd != null)
@@ -269,7 +274,7 @@ public class VoxelRenderer : MonoBehaviour
             this.BuildMesh(new VoxelData(grouped[0].ToArray(), VoxelData.Colors));
             for (int i = 1; i < grouped.Count; i++)
             {
-                VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, out Rigidbody _, this.transform, Material);
+                VoxelBuilder.NewRenderer(grouped[i].ToArray(), VoxelData.Colors, out Rigidbody _, this.transform, this);
             }
         }
     }

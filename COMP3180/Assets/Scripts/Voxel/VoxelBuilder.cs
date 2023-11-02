@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class VoxelBuilder
 {
-    public static float VoxelSize = 0.25f;
+    public static float VoxelSize = 0.1f;
     public static float HVoxelSize => VoxelSize * 0.5f;
 
     public static Mesh Build(VoxelData voxData, VoxelShape voxShape)
@@ -157,7 +157,7 @@ public static class VoxelBuilder
         cOut = cols.ToArray();
     }
 
-    public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null, Material newMat = null)
+    public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null, VoxelRenderer copy = null)
     {
         VoxelRenderer rend = new GameObject().AddComponent<VoxelRenderer>();
 
@@ -166,12 +166,13 @@ public static class VoxelBuilder
             rend.gameObject.transform.SetPositionAndRotation(transform.position, transform.rotation);
         }
 
-        if (newMat != null)
+        if (copy != null)
         {
-            rend.UpdateMaterial(newMat);
+            rend.UpdateMaterial(copy.Material);
+            rend.UpdateBreakType(copy.BreakType);
         }
-        rend.BuildMesh(new VoxelData(points, cols));
 
+        rend.BuildMesh(new VoxelData(points, cols));
         rend.gameObject.AddComponent<VoxelCollider>();
         rig = rend.gameObject.AddComponent<Rigidbody>();
 

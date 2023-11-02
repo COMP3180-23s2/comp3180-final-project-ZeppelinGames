@@ -54,7 +54,7 @@ public class VoxelDataEditor : MonoBehaviour
         {
             hadCollider = false;
             VoxelCollider vcAdded = voxel.gameObject.AddComponent<VoxelCollider>();
-            //vcAdded.BuildCollider();
+            vcAdded.BuildCollider();
         }
     }
 
@@ -73,6 +73,11 @@ public class VoxelDataEditor : MonoBehaviour
         }
 
         SceneView.duringSceneGui -= OnSceneGUI;
+    }
+
+    void EditorUpdate()
+    {
+        UpdateMarker();
     }
 
     void OnSceneGUI(SceneView view)
@@ -94,6 +99,9 @@ public class VoxelDataEditor : MonoBehaviour
         int id = GUIUtility.GetControlID(FocusType.Passive);
         HandleUtility.AddDefaultControl(id);
 
+        // Manage inputs
+        ManageInputs(id);
+
         // Draw GUI
         Handles.BeginGUI();
         GUILayout.BeginVertical();
@@ -101,9 +109,6 @@ public class VoxelDataEditor : MonoBehaviour
         DrawPalette(sceneViewCam, (int)paletteSize.y);
         GUILayout.EndVertical();
         Handles.EndGUI();
-
-        // Manage inputs
-        ManageInputs(id);
     }
 
     void DrawTools(Camera sceneViewCam)
@@ -213,7 +218,10 @@ public class VoxelDataEditor : MonoBehaviour
     void ManageInputs(int id)
     {
         Event e = Event.current;
-        switch (e.GetTypeForControl(id))
+
+        EventType eType = e.GetTypeForControl(id);
+
+        switch (eType)
         {
             case EventType.MouseMove:
                 UpdateMarker();
@@ -234,13 +242,17 @@ public class VoxelDataEditor : MonoBehaviour
                 break;
 
             case EventType.MouseDrag:
-                UpdateMarker();
-                if (e.button == 0)
+                if (voxelEditorState == VoxelEditorState.PAINTING)
                 {
-                    ToolEvent();
+                    UpdateMarker();
+                    if (e.button == 0)
+                    {
+                        ToolEvent();
+                    }
                 }
                 break;
         }
+        UpdateMarker();
     }
 
     void ToolEvent()
@@ -274,7 +286,7 @@ public class VoxelDataEditor : MonoBehaviour
         voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
         if (voxelCol != null)
         {
-            //voxelCol.BuildCollider();
+            voxelCol.BuildCollider();
         }
     }
 
@@ -293,6 +305,11 @@ public class VoxelDataEditor : MonoBehaviour
     Vector3 hitpoint = Vector3.zero;
     void UpdateMarker()
     {
+        if(Event.current == null)
+        {
+            return;
+        }
+
         Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
         RaycastHit? hit = HandleUtility.RaySnap(ray) as RaycastHit?;
 
@@ -337,7 +354,7 @@ public class VoxelDataEditor : MonoBehaviour
         voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
         if (voxelCol != null)
         {
-           // voxelCol.BuildCollider();
+           voxelCol.BuildCollider();
         }
     }
 

@@ -74,6 +74,11 @@ public class VoxelCollider : MonoBehaviour
 
     public void BuildCollider()
     {
+        if(Renderer == null || Renderer.VoxelData == null)
+        {
+            return;
+        }
+
         colliderPointMap.Clear();
         pointColliderMap.Clear();
         for (int i = 0; i < colliderPool.Count; i++)
