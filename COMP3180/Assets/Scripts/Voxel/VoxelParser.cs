@@ -41,6 +41,7 @@ public static class VoxelParser
         { 'l', LoadState.ZP_TRIS },
         { 'r', LoadState.ZN_TRIS },
     };
+    
     public static void Parse(
         string contents,
         out Vector3[] verts,
