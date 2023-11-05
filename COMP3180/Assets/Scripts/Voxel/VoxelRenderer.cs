@@ -383,16 +383,19 @@ public class VoxelRenderer : MonoBehaviour
         return VoxelData.VoxelPoints[closest];
     }
 
+    public Vector3 PointToVoxelPosition(Vector3 p)
+    {
+        return ClosestPointTo(p - transform.position).LocalPosition + transform.position;
+    }
+
     public Vector3Int WorldToLocalVoxel(Vector3 world)
     {
-        Vector3 rounded = RoundToVoxelPosition(world - transform.position);
-
-        Vector3 inv = transform.InverseTransformVector(rounded) / VoxelBuilder.VoxelSize;
+        Vector3 rounded = RoundToVoxelPosition(world);
+        Vector3 noOffset = rounded - transform.position;
         return new Vector3Int(
-            Mathf.RoundToInt(inv.x),
-            Mathf.RoundToInt(inv.y),
-            Mathf.RoundToInt(inv.z)
-        );
+            Mathf.RoundToInt(noOffset.x / VoxelBuilder.VoxelSize),
+            Mathf.RoundToInt(noOffset.y / VoxelBuilder.VoxelSize),
+            Mathf.RoundToInt(noOffset.z / VoxelBuilder.VoxelSize));
     }
 
     public Vector3 RoundToVoxelPosition(Vector3 v)

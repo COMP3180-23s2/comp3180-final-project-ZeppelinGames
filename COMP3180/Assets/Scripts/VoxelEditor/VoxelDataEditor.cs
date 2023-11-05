@@ -75,11 +75,6 @@ public class VoxelDataEditor : MonoBehaviour
         SceneView.duringSceneGui -= OnSceneGUI;
     }
 
-    void EditorUpdate()
-    {
-        UpdateMarker();
-    }
-
     void OnSceneGUI(SceneView view)
     {
         if (!framed)
@@ -220,16 +215,12 @@ public class VoxelDataEditor : MonoBehaviour
         Event e = Event.current;
 
         EventType eType = e.GetTypeForControl(id);
-
         switch (eType)
         {
-            case EventType.MouseMove:
-                UpdateMarker();
-                break;
-
             case EventType.MouseDown:
                 if (!drawHelper)
                 {
+                    UpdateMarker();
                     break;
                 }
 
@@ -251,30 +242,34 @@ public class VoxelDataEditor : MonoBehaviour
                     }
                 }
                 break;
+            case EventType.MouseMove:
+                UpdateMarker();
+                e.Use();
+                break;
+
         }
-        UpdateMarker();
     }
 
     void ToolEvent()
     {
-        Vector3Int newPoint = voxel.WorldToLocalVoxel(voxelAddPos);
+        Vector3Int newPos = voxel.WorldToLocalVoxel(voxelAddPos);
         switch (voxelEditorState)
         {
             case VoxelEditorState.ADDING:
-                AddVoxel(newPoint);
+                AddVoxel(newPos);
                 break;
             case VoxelEditorState.REMOVING:
-                RemoveVoxel(newPoint);
+                RemoveVoxel(newPos);
                 break;
             case VoxelEditorState.PAINTING:
-                PaintVoxel(newPoint);
+                PaintVoxel(newPos);
                 break;
         }
     }
 
     void AddVoxel(Vector3Int newPoint)
     {
-        if (HasPoint(newPoint))
+        if (voxel.VoxelData.VoxelMap.ContainsKey(newPoint))
         {
             return;
         }
@@ -290,47 +285,26 @@ public class VoxelDataEditor : MonoBehaviour
         }
     }
 
-    bool HasPoint(Vector3Int p)
-    {
-        for (int i = 0; i < voxel.VoxelData.VoxelPoints.Length; i++)
-        {
-            if (voxel.VoxelData.VoxelPoints[i].Position == p)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     Vector3 hitpoint = Vector3.zero;
     void UpdateMarker()
     {
-        if(Event.current == null)
+        if (Event.current == null)
         {
             return;
         }
 
         Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-        RaycastHit? hit = HandleUtility.RaySnap(ray) as RaycastHit?;
 
-        drawHelper = hit != null && hit.Value.transform == voxel.transform;
-
+        RaycastHit h;
+        drawHelper = Physics.Raycast(ray, out h) && h.transform == voxel.transform;
         if (drawHelper)
         {
-            hitpoint = hit.Value.point;
-            switch (voxelEditorState)
+            hitpoint = h.point;
+            voxelAddPos = voxel.PointToVoxelPosition(h.point);
+            if (voxelEditorState == VoxelEditorState.ADDING)
             {
-                case VoxelEditorState.ADDING:
-                    voxelAddPos = hit.Value.point + (hit.Value.normal * VoxelBuilder.HVoxelSize);
-                    break;
-                case VoxelEditorState.REMOVING:
-                    voxelAddPos = hit.Value.point - (hit.Value.normal * VoxelBuilder.HVoxelSize);
-                    break;
-                case VoxelEditorState.PAINTING:
-                    voxelAddPos = hit.Value.point - (hit.Value.normal * VoxelBuilder.HVoxelSize);
-                    break;
+                voxelAddPos += h.normal * VoxelBuilder.VoxelSize;
             }
-            voxelAddPos = voxel.RoundToVoxelPosition(voxelAddPos);
         }
     }
 
@@ -382,7 +356,6 @@ public class VoxelDataEditor : MonoBehaviour
         return -1;
     }
 
-    // Update is called once per frame
     void OnDrawGizmos()
     {
         if (drawHelper)

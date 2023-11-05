@@ -10,7 +10,7 @@ using UnityEditor.SceneManagement;
 public class VoxelRendererEditor : Editor
 {
     SerializedProperty voxelDataFile;
-    SerializedProperty overrideShape;
+    //SerializedProperty overrideShape;
     SerializedProperty voxelShapeFile;
     SerializedProperty voxelBreakType;
 
@@ -39,7 +39,7 @@ public class VoxelRendererEditor : Editor
     {
         EditorApplication.playModeStateChanged += EditorApplication_playModeStateChanged;
 
-        overrideShape = serializedObject.FindProperty("overrideShape");
+        //overrideShape = serializedObject.FindProperty("overrideShape");
         voxelDataFile = serializedObject.FindProperty("voxelDataFile");
         voxelShapeFile = serializedObject.FindProperty("voxelShapeFile");
         voxelBreakType = serializedObject.FindProperty("breakType");
@@ -92,11 +92,11 @@ public class VoxelRendererEditor : Editor
         serializedObject.Update();
 
         EditorGUILayout.PropertyField(voxelDataFile);
-        EditorGUILayout.PropertyField(overrideShape);
-        if (overrideShape.boolValue)
+        //EditorGUILayout.PropertyField(overrideShape);
+      /*  if (overrideShape.boolValue)
         {
-            EditorGUILayout.PropertyField(voxelShapeFile);
-        }
+        }*/
+        EditorGUILayout.PropertyField(voxelShapeFile);
 
         EditorGUILayout.PropertyField(overrideDefaultMaterialBool);
         if (overrideDefaultMaterialBool.boolValue)
