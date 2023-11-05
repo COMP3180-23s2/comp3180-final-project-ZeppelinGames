@@ -78,16 +78,16 @@
 #### Properties
 | Properties | Description |
 | ------------- | ------------ |  
-| Verticies (Vector3[]) | |
-| Normals (Vector3[]) | |
-| FaceTriangles (int[][]) | |
-| voxelShapeFile (TextAsset) | |
+| Verticies (Vector3[]) | Mesh shape vertices |
+| Normals (Vector3[]) | Mesh shape normals |
+| FaceTriangles (int[][]) | Mesh shape triangles |
+| voxelShapeFile (TextAsset) | File used to create VoxelShape (if applicable) |
 
 #### Constructors
 | Constructor | Description |
 | ----------- | ----------- |
-| `public VoxelShape(TextAsset voxelShapeFile)` | |
-| `public VoxelShape(Vector3[] verts, Vector3[] norms, int[][] tris)` | |
+| `public VoxelShape(TextAsset voxelShapeFile)` | Load VoxelShape from voxel file |
+| `public VoxelShape(Vector3[] verts, Vector3[] norms, int[][] tris)` | Create voxel shape using vertice, normal and triangle data |
 
 <hr>
 
@@ -99,15 +99,15 @@
 #### Properties
 | Properties | Description |
 | ------------- | ------------ |  
-| VoxelSize (float) | |
-| HVoxelSize (float) | |
+| VoxelSize (float) | Global size of all voxels |
+| HVoxelSize (float) | Half of VoxelSize |
 
 #### Methods
 | Method | Description |
 | ------ | ----------- |
-| `public static Mesh Build(VoxelData voxData, VoxelShape voxShape)` | | 
-| `public static void Build(VoxelData voxData, VoxelShape voxShape, out Vector3[] vOut, out int[] tOut, out Vector3[] nOut, out Color[] cOut)` | |
-| `public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null, VoxelRenderer copy = null)` | |
+| `public static Mesh Build(VoxelData voxData, VoxelShape voxShape)` | Build voxel mesh using VoxelData and VoxelShape | 
+| `public static void Build(VoxelData voxData, VoxelShape voxShape, out Vector3[] vOut, out int[] tOut, out Vector3[] nOut, out Color[] cOut)` | Build voxel using VoxelData and VoxelShape outputting vertex, triangle, normal and palette data |
+| `public static VoxelRenderer NewRenderer(VoxelPoint[] points, Color[] cols, out Rigidbody rig, Transform transform = null, VoxelRenderer copy = null)` | Create a new VoxelRenderer object copying data from another |
 
 <hr>
 
@@ -120,37 +120,29 @@
 #### Properties
 | Properties | Description |
 | ------------- | ------------ |  
-| | |
-
-#### Constructors
-| Constructor | Description |
-| ----------- | ----------- |
-
-#### Methods
-| Method | Description |
-| ------ | ----------- |
-| | |
-
-<hr>
-
-## Voxel Fracturer (`Scripts/Voxel/VoxelFracturer.cs`, Component)
-#### Description
-- Handles raycasting to voxels
-- Handles defining which voxel to be fractured
-
-#### Properties
-| Properties | Description |
-| ------------- | ------------ |  
-| | |
-
-#### Constructors
-| Constructor | Description |
-| ----------- | ----------- |
+| VoxelDataFile (TextAsset) | Voxel data file to load VoxelData from |
+| VoxelShapeFile (TextAsset) | Voxel shape file to load VoxelShape from |
+| BreakType (BreakType) | Defines how the voxel should break when fractured |
+| overrideDefaultMaterial (bool) | Should default material be overriden |
+| Material (Material) | Material to override with when overrideDefaultMaterial is checked |
+| voxelData (VoxelData) | Current renderer's voxel data |
+| voxelShape (VoxelShape) | Current renderer's voxel shape |
 
 #### Methods
 | Method | Description |
 | ------ | ----------- |
-| | |
+| `public void InitMesh` | Create new mesh for MeshFilter |
+| `public bool LoadMesh()` | Load mesh data from file |
+| `public void UpdateMaterial(Material m)` | Update and apply override material |
+| `public void UpdateBreakType(VoxelBreakType breakType)` | Update mesh break type |
+| `public void UpdateVoxelData(VoxelData vd = null, VoxelShape vs = null)` | Update voxel data to use when building mesh |
+| `public bool BuildMesh(VoxelData vd = null, VoxelShape vs = null)` | Build voxel mesh using voxel data and shape |
+| `public void GroupAndFracture()` | Find groups of voxels that have become disconnected and fracture them |
+| `public VoxelPoint ClosestPointTo(Vector3 position)` | Find closest VoxelPoint to Vector3 |
+| `public Vector3 PointToVoxelPosition(Vector3 p)` | Convert Vector3 to VoxelPosition in worldspace |
+| `public Vector3Int WorldToLocalVoxel(Vector3 world)` | Transforms Vector3 to local voxel space (approximating) |
+| `public Vector3 LocalToWorldVoxel(Vector3Int local)` | Transforms Vector3Int to worldspace|
+| `public Vector3 RoundToVoxelPosition(Vector3 v)` | Rounds given Vector3 to nearest VoxelBuilder.VoxelSize |
 
 <hr>
 
@@ -161,60 +153,41 @@
 #### Properties
 | Properties | Description |
 | ------------- | ------------ |  
-| | |
-
-#### Constructors
-| Constructor | Description |
-| ----------- | ----------- |
+| pointColliderMap (Dictionary<Vector3Int, Collider>) | Maps voxel position to collider for quick lookup |
+| colliderPointMap (Dictionary<Collider, Vector3Int>) | Maps collider to voxel position for quick lookup |
+| colliderPool (List<BoxCollider) | List of avaliable colliders to pool|
+| voxRenderer (VoxelRenderer) | VoxelRenderer linked to this collider |
 
 #### Methods
 | Method | Description |
 | ------ | ----------- |
-| | |
+| `private BoxCollider GetPooledCollider()` | Get collider from pool or create one if none left |
+| `private bool FirstDisabledCollider(out BoxCollider c)` | Find first collider in pool that is not enabled |
+| `public void BuildCollider()` | Build colliders for voxel |
+| `private void AddToMap(BoxCollider bc, Vector3Int v)` | Add Collider/Vector3Int data to maps |
 
 <hr>
 
-## Voxel Renderer Editor (`Editor/VoxelRendererEditor.cs`, Editor Tool)
+
+## Voxel Fracturer (`Scripts/Voxel/VoxelFracturer.cs`, Component)
 #### Description
-- Handles GUI and Editor updates for `VoxelRenderer` component
-- Manages creating new voxel data files.
-- Manages entering and exiting exit mode
-- Defines default Voxel creating GameObject (`CreateVoxel` function)
+- Handles raycasting to voxels
+- Handles defining which voxel to be fractured
 
 #### Properties
 | Properties | Description |
 | ------------- | ------------ |  
-| | |
+| cam (Camera) | Camera used to raycast Voxels |
+| breakForce (float) | Amount of force applied to voxels when broken | 
+| breakRadius (float) | Area to break Voxels |  
 
-#### Constructors
-| Constructor | Description |
-| ----------- | ----------- |
-
-#### Methods
-| Method | Description |
-| ------ | ----------- |
-| | |
-
-<hr>
-
-## Voxel Data Editor (`Scripts/VoxelEditor/VoxelDataEditor.cs`, Editor Tool)
-#### Description
-- Manages in Editor editing of voxel data
-- Handles GUI and Gizmos for Scene view Editor tools
-
-#### Properties
-| Properties | Description |
-| ------------- | ------------ |  
-| | |
-
-#### Constructors
-| Constructor | Description |
-| ----------- | ----------- |
 
 #### Methods
 | Method | Description |
 | ------ | ----------- |
-| | |
+| `void Dissolve(VoxelCollider vc, Vector3 hitCentre)` | Fracturing using SAND breakType |
+| `void Break(VoxelCollider vc, Vector3 hitCentre, Vector3 dir, float breakRadius)` | Fracturing using PHYSICS breakType |
+| `public List<VoxelPoint> FindAllNeighbors(VoxelRenderer vr, VoxelPoint startPoint, List<VoxelPoint> pointList)` | Gets neighbours of voxel in ordered list |
 
 <hr>
 

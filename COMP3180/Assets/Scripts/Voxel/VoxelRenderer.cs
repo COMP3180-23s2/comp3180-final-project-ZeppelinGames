@@ -222,38 +222,6 @@ public class VoxelRenderer : MonoBehaviour
         return true;
     }
 
-    public bool EditorBuildMesh(VoxelData vd = null, VoxelShape vs = null)
-    {
-        meshBuildStarted?.Invoke();
-
-        UpdateVoxelData(vd, vs);
-
-        if (VoxelData == null || VoxelShape == null)
-        {
-            Debug.LogWarning("Mesh build failed. Invalid voxel data or shape");
-            return false;
-        }
-
-        if (overrideDefaultMaterial || MeshRenderer.sharedMaterial == null)
-        {
-            // Update material.
-            MeshRenderer.sharedMaterial = Material;
-        }
-
-        VoxelBuilder.Build(VoxelData, VoxelShape, out Vector3[] v, out int[] t, out Vector3[] n, out Color[] c);
-
-        voxelMesh.Clear();
-
-        voxelMesh.SetVertices(v);
-        voxelMesh.SetTriangles(t, 0);
-        voxelMesh.SetNormals(n);
-        voxelMesh.SetColors(c);
-
-        // Update other linked components
-        meshBuildComplete?.Invoke();
-        return true;
-    }
-
     public void GroupAndFracture()
     {
         if (VoxelData.VoxelPoints.Length <= 0)
@@ -321,22 +289,6 @@ public class VoxelRenderer : MonoBehaviour
         }
     }
 
-    public List<VoxelPoint> GetNeighbours(VoxelPoint vector)
-    {
-        List<VoxelPoint> neighbors = new List<VoxelPoint>();
-
-        foreach (Vector3Int offset in NeighbourOffsets)
-        {
-            Vector3Int neighbor = vector.Position + offset;
-            if (voxelData.VoxelMap.ContainsKey(neighbor))
-            {
-                neighbors.Add(voxelData.VoxelMap[neighbor]);
-            }
-        }
-
-        return neighbors;
-    }
-
     public VoxelPoint[] GetNeighbours(Vector3Int v, out int neighbourCount)
     {
         VoxelPoint[] neighbours = new VoxelPoint[9];
@@ -352,18 +304,6 @@ public class VoxelRenderer : MonoBehaviour
             }
         }
         return neighbours;
-    }
-
-    public VoxelPoint? VoxelPointFromPosition(Vector3Int position)
-    {
-        for (int i = 0; i < VoxelData.VoxelPoints.Length; i++)
-        {
-            if (VoxelData.VoxelPoints[i].Position == position)
-            {
-                return VoxelData.VoxelPoints[i];
-            }
-        }
-        return null;
     }
 
     public VoxelPoint ClosestPointTo(Vector3 position)
@@ -410,10 +350,5 @@ public class VoxelRenderer : MonoBehaviour
     public Vector3 LocalToWorldVoxel(Vector3Int local)
     {
         return transform.TransformVector((Vector3)local * VoxelBuilder.VoxelSize);
-    }
-
-    public Vector3 Inv(Vector3Int v)
-    {
-        return transform.InverseTransformPoint(v) / VoxelBuilder.VoxelSize;
     }
 }
