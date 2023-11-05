@@ -8,10 +8,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Demo.unity
     guid: d96d4f11db9620047a5aeaab7d01879d
-  - enabled: 1
-    path: Assets/Scenes/Bench.unity
-    guid: 9494c5b92afef344e889040c10c1a2e0
-  - enabled: 1
-    path: Assets/Scenes/NoSelfCollision.unity
-    guid: cf051b918a3799049a57a1ddc8f1ab8e
   m_configObjects: {}

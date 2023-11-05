@@ -30,6 +30,8 @@ public class VoxelDataEditor : MonoBehaviour
     Vector3 voxelAddPos;
     Vector3 voxelRemovePos;
 
+    Vector3Int currPos = Vector3Int.zero;
+    bool usingKeyboard = false;
 
     private void Start()
     {
@@ -91,7 +93,7 @@ public class VoxelDataEditor : MonoBehaviour
         Camera sceneViewCam = SceneView.lastActiveSceneView.camera;
 
         // Setup handles
-        int id = GUIUtility.GetControlID(FocusType.Passive);
+        int id = GUIUtility.GetControlID(FocusType.Keyboard);
         HandleUtility.AddDefaultControl(id);
 
         // Manage inputs
@@ -170,7 +172,7 @@ public class VoxelDataEditor : MonoBehaviour
             );
 
             // Change selected colour
-            if(GUI.Toggle(
+            if (GUI.Toggle(
                 new Rect((i * paletteSize.x) + (i * 8) + paletteOffset.x + (paletteSize.x / 4f), paletteOffset.y + 24, paletteSize.x, paletteSize.y),
                 i == currColorIndex,
                 GUIContent.none))
@@ -210,13 +212,50 @@ public class VoxelDataEditor : MonoBehaviour
         }
     }
 
+    KeyCode[] keyMap = new KeyCode[] {
+        KeyCode.A,
+        KeyCode.D,
+        KeyCode.W,
+        KeyCode.S,
+        KeyCode.Q,
+        KeyCode.E
+    };
+
+    Vector3Int[] moveMap = new Vector3Int[] {
+        Vector3Int.left,
+        Vector3Int.right,
+        new Vector3Int(0, 0, 1),
+        new Vector3Int(0, 0, -1),
+        Vector3Int.up,
+        Vector3Int.down
+    };
+
     void ManageInputs(int id)
     {
         Event e = Event.current;
 
         EventType eType = e.GetTypeForControl(id);
+
         switch (eType)
         {
+            case EventType.KeyDown:
+                Debug.Log(e.keyCode);
+                for (int i = 0; i < keyMap.Length; i++)
+                {
+                    if (e.keyCode == keyMap[i])
+                    {
+                        currPos += moveMap[i];
+                        Debug.Log(currPos);
+                        usingKeyboard = true;
+                    }
+                }
+                if (e.keyCode == KeyCode.Space)
+                {
+                    ToolEvent();
+                }
+                e.Use();
+                break;
+
             case EventType.MouseDown:
                 if (!drawHelper)
                 {
@@ -227,6 +266,7 @@ public class VoxelDataEditor : MonoBehaviour
                 // LMB
                 if (e.button == 0)
                 {
+                    usingKeyboard = false;
                     ToolEvent();
                     e.Use();
                 }
@@ -252,7 +292,7 @@ public class VoxelDataEditor : MonoBehaviour
 
     void ToolEvent()
     {
-        Vector3Int newPos = voxel.WorldToLocalVoxel(voxelAddPos);
+        Vector3Int newPos = usingKeyboard ? currPos : voxel.WorldToLocalVoxel(voxelAddPos);
         switch (voxelEditorState)
         {
             case VoxelEditorState.ADDING:
@@ -328,7 +368,7 @@ public class VoxelDataEditor : MonoBehaviour
         voxel.BuildMesh(new VoxelData(newVoxels, voxel.VoxelData.Colors));
         if (voxelCol != null)
         {
-           voxelCol.BuildCollider();
+            voxelCol.BuildCollider();
         }
     }
 
@@ -358,7 +398,7 @@ public class VoxelDataEditor : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        if (drawHelper)
+        if (drawHelper || usingKeyboard)
         {
             switch (voxelEditorState)
             {
@@ -372,7 +412,7 @@ public class VoxelDataEditor : MonoBehaviour
                     Gizmos.color = voxel.VoxelData.Colors[currColorIndex];
                     break;
             }
-            Gizmos.DrawCube(voxelAddPos, new Vector3(1.1f, 1.1f, 1.1f) * VoxelBuilder.VoxelSize);
+            Gizmos.DrawCube(usingKeyboard ? voxel.LocalToWorldVoxel(currPos) + voxel.transform.position : voxelAddPos, new Vector3(1.1f, 1.1f, 1.1f) * VoxelBuilder.VoxelSize);
             Gizmos.DrawSphere(hitpoint, 0.1f * VoxelBuilder.VoxelSize);
         }
     }

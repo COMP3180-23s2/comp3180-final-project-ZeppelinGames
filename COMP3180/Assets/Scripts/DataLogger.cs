@@ -46,13 +46,13 @@ public class DataLogger : MonoBehaviour
             Destroy(this);
             return;
         }
-
+        Application.targetFrameRate = -1;
     }
 
     float t = 5f;
     private void Update()
     {
-        if (t >= 5f)
+        if (t >= 3f)
         {
             t = 0;
             AddToLog(graphy.CurrentFPS, graphy.AverageFPS, graphy.ReservedRam, graphy.AllocatedRam);
